@@ -13,6 +13,7 @@ This document outlines the complete fullstack architecture for **BMADFlow**, inc
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2025-10-01 | 1.0 | Initial architecture document created from PRD and front-end spec | Winston (Architect) |
+| 2025-10-01 | 1.1 | Updated to reference extracted epic and story files | Sarah (PO) |
 
 ---
 
@@ -1093,10 +1094,15 @@ interface ApiError {
 - ✅ Error handling strategy documented
 - ✅ Monitoring approach defined
 
+**Epic and Story Files:**
+- Epic files: `docs/epics/` (4 epic files: [epic-1-foundation-github-dashboard.md](../epics/epic-1-foundation-github-dashboard.md) through [epic-4-epic-story-visualization.md](../epics/epic-4-epic-story-visualization.md))
+- Story files: `docs/stories/` (33 story files: [story-1-1-project-infrastructure-setup.md](../stories/story-1-1-project-infrastructure-setup.md) through story-4-7)
+- Each story references this architecture document for technical implementation guidance
+
 **Next Steps:**
-1. Developer executes Story 1.1: Project Infrastructure Setup
-2. Implement database schema (Story 1.2)
-3. Begin Epic 1 development following this architecture
+1. Developer executes [Story 1.1: Project Infrastructure Setup](../stories/story-1-1-project-infrastructure-setup.md)
+2. Implement database schema ([Story 1.2](../stories/story-1-2-database-schema-for-documents.md))
+3. Begin [Epic 1](../epics/epic-1-foundation-github-dashboard.md) development following this architecture
 
 ---
 
