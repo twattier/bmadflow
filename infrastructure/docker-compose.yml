@@ -1,0 +1,67 @@
+name: bmad-flow
+
+services:
+  frontend:
+    container_name: bmad-flow-frontend
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ../apps/web/src:/app/src
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - bmadflow-network
+
+  backend:
+    container_name: bmad-flow-backend
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ../apps/api/src:/app/src
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bmadflow-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    container_name: bmad-flow-postgres
+    image: ankane/pgvector:v0.5.1
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-bmadflow}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bmadflow_dev}
+      - POSTGRES_DB=${POSTGRES_DB:-bmadflow}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - bmadflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bmadflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  bmadflow-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
