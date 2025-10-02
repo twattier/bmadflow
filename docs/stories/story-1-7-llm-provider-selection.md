@@ -434,6 +434,7 @@ OPENAI_TIMEOUT=30
 | 2025-10-02 | 2.0 | Complete rewrite: Changed from "model benchmarking" to "provider evaluation" (OLLAMA vs OpenAI), added embedding dimension constraint, privacy-first weighting | Bob (SM) |
 | 2025-10-02 | 2.1 | Updated for actual environment: qwen2.5:3b model, LiteLLM proxy instead of direct OpenAI, added OPENAI_BASE_URL configuration | Bob (SM) |
 | 2025-10-02 | 2.2 | Status changed from Draft to Approved after PO validation and Epic 1.7 alignment update | Sarah (PO) |
+| 2025-10-02 | 3.0 | Tasks 1-2 completed, QA review (CONCERNS gate, 95/100), applied QA fixes: package dependency, File List update, git commit | James (Dev) |
 
 ---
 
@@ -461,8 +462,23 @@ None - straightforward implementation
 
 **Key Decisions:**
 - Used local bmadflow project docs for test dataset (BMAD-METHOD repo lacks epics/stories structure)
-- Corrected `ollama-python` package to `ollama` for proper Python API
 - Auto-detect Docker environment for OLLAMA URL (`http://ollama:11434` in containers)
+- Removed redundant EMBEDDING_DIMENSION variable (auto-derives from LLM_PROVIDER selection)
+
+**QA Review Results:**
+- Gate: CONCERNS (Quality Score: 95/100)
+- QA Fixes Applied:
+  - Fixed package dependency error: `ollama-python` → `ollama` in requirements.txt
+  - Fixed AsyncClient API compatibility (61/61 backend tests passing)
+  - Added datetime fields to mock Project objects
+  - Removed redundant EMBEDDING_DIMENSION configuration variable
+  - Updated File List with QA-modified files
+- Committed all work to git (21 files: evaluation scripts, test dataset, QA gate, story doc)
+
+**Blockers for Epic 2:**
+- Provider decision needed (QA recommends OLLAMA for 40% privacy weighting)
+- Task 8 incomplete: Backend configuration (`apps/api/src/core/config.py`)
+- Database schema needs embedding dimension (`vector(768)` or `vector(1536)`)
 
 ### File List
 
