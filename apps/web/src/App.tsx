@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Header from './components/layout/Header';
+import TabNavigation from './components/layout/TabNavigation';
+import ScopingView from './pages/ScopingView';
+import ArchitectureView from './pages/ArchitectureView';
+import EpicsView from './pages/EpicsView';
+import DetailView from './pages/DetailView';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <BrowserRouter>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <TabNavigation />
+        <main>
+          <Routes>
+            <Route path="/" element={<Navigate to="/scoping" replace />} />
+            <Route path="/scoping" element={<ScopingView />} />
+            <Route path="/architecture" element={<ArchitectureView />} />
+            <Route path="/epics" element={<EpicsView />} />
+            <Route path="/detail" element={<DetailView />} />
+            <Route path="/detail/:documentId" element={<DetailView />} />
+          </Routes>
+        </main>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
