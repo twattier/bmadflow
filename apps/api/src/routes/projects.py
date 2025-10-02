@@ -1,4 +1,5 @@
 """Project API routes."""
+
 import logging
 import uuid
 from typing import Dict
@@ -21,7 +22,9 @@ sync_tasks: Dict[str, Dict] = {}
 project_task_map: Dict[uuid.UUID, str] = {}
 
 
-async def sync_project_background(task_id: str, project_id: uuid.UUID, db: AsyncSession):
+async def sync_project_background(
+    task_id: str, project_id: uuid.UUID, db: AsyncSession
+):
     """Background task to sync project from GitHub.
 
     Args:
@@ -73,9 +76,7 @@ async def sync_project_background(task_id: str, project_id: uuid.UUID, db: Async
 
 
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
-async def create_project(
-    project: ProjectCreate, db: AsyncSession = Depends(get_db)
-):
+async def create_project(project: ProjectCreate, db: AsyncSession = Depends(get_db)):
     """Create a new project.
 
     Args:

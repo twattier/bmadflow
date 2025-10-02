@@ -1,4 +1,5 @@
 """Tests for SyncService."""
+
 import pytest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -158,10 +159,7 @@ async def test_sync_project_partial_failure(sync_service, mock_db):
     mock_project.github_url = "https://github.com/owner/repo"
 
     # Mock 10 files, 1 will fail
-    files = [
-        (f"docs/prd/file{i}.md", f"# File {i}\nContent")
-        for i in range(10)
-    ]
+    files = [(f"docs/prd/file{i}.md", f"# File {i}\nContent") for i in range(10)]
 
     call_count = 0
 

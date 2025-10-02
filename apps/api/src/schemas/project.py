@@ -1,4 +1,5 @@
 """Project schemas for API request/response validation."""
+
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -15,7 +16,9 @@ class ProjectCreate(BaseModel):
     def validate_github_url(cls, v: str) -> str:
         """Validate that URL contains github.com."""
         if "github.com" not in v.lower():
-            raise ValueError("URL must be a valid GitHub repository URL containing 'github.com'")
+            raise ValueError(
+                "URL must be a valid GitHub repository URL containing 'github.com'"
+            )
         return v
 
 

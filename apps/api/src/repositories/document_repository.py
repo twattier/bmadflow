@@ -1,4 +1,5 @@
 """Document repository for database access."""
+
 from typing import List
 from uuid import UUID
 from sqlalchemy import select

@@ -1,4 +1,5 @@
 """Base repository with generic CRUD operations."""
+
 from typing import Generic, TypeVar, Optional, List
 from uuid import UUID
 from sqlalchemy import select

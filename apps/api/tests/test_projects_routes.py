@@ -1,4 +1,5 @@
 """Integration tests for project API routes."""
+
 import pytest
 import uuid
 from datetime import datetime, timezone
@@ -281,7 +282,9 @@ async def test_full_sync_flow(client):
                         }
                     )
 
-                    response = await client.get(f"/api/projects/{project_id}/sync-status")
+                    response = await client.get(
+                        f"/api/projects/{project_id}/sync-status"
+                    )
                     assert response.status_code == 200
                     status_data = response.json()
                     assert status_data["status"] == "completed"

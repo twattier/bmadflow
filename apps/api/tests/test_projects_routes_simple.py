@@ -1,4 +1,5 @@
 """Simplified integration tests for project API routes."""
+
 import pytest
 from src.services.sync_service import detect_doc_type
 
@@ -15,7 +16,7 @@ def test_detect_doc_type_patterns():
         ("/docs/prd/overview.md", "scoping"),
         ("/docs/architecture/tech-stack.md", "architecture"),
     ]
-    
+
     for file_path, expected_type in test_cases:
         assert detect_doc_type(file_path) == expected_type, f"Failed for {file_path}"
 

@@ -1,4 +1,5 @@
 """Tests for DocumentRepository."""
+
 import pytest
 import uuid
 from unittest.mock import AsyncMock, MagicMock

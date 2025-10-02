@@ -88,9 +88,7 @@ class GitHubService:
                     if item.path.endswith(".md"):
                         markdown_files.append(item.path)
 
-            logger.info(
-                f"Found {len(markdown_files)} markdown files in /docs folder"
-            )
+            logger.info(f"Found {len(markdown_files)} markdown files in /docs folder")
             return markdown_files
 
         except GithubException as e:
@@ -164,9 +162,7 @@ class GitHubService:
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-    def fetch_all_markdown_files(
-        self, owner: str, repo: str
-    ) -> List[Tuple[str, str]]:
+    def fetch_all_markdown_files(self, owner: str, repo: str) -> List[Tuple[str, str]]:
         """
         Fetch all markdown files from /docs folder with their content.
 

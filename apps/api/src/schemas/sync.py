@@ -1,4 +1,5 @@
 """Sync schemas for API request/response validation."""
+
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -13,8 +14,12 @@ class SyncTaskResponse(BaseModel):
 class SyncStatusResponse(BaseModel):
     """Schema for sync status response."""
 
-    status: str = Field(..., description="Sync status: pending/in_progress/completed/failed")
+    status: str = Field(
+        ..., description="Sync status: pending/in_progress/completed/failed"
+    )
     processed_count: int = Field(0, description="Number of documents processed")
     total_count: int = Field(0, description="Total number of documents to process")
-    error_message: Optional[str] = Field(None, description="Error message if sync failed")
+    error_message: Optional[str] = Field(
+        None, description="Error message if sync failed"
+    )
     retry_allowed: bool = Field(False, description="Whether retry is allowed")

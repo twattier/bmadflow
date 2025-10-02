@@ -1,4 +1,5 @@
 """Database configuration and session management."""
+
 import os
 from typing import AsyncGenerator
 
@@ -7,8 +8,7 @@ from sqlalchemy.pool import NullPool
 
 # Get database URL from environment
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://bmadflow:bmadflow_dev@postgres:5432/bmadflow"
+    "DATABASE_URL", "postgresql+asyncpg://bmadflow:bmadflow_dev@postgres:5432/bmadflow"
 )
 
 # Create async engine

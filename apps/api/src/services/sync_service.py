@@ -1,4 +1,5 @@
 """Sync service to orchestrate GitHub fetch and database storage."""
+
 import asyncio
 import logging
 import re
@@ -144,7 +145,9 @@ class SyncService:
                         task_tracker["processed_count"] = processed_count
                         task_tracker["current_file"] = file_path
 
-                    logger.debug(f"Processed {file_path} ({processed_count}/{total_count})")
+                    logger.debug(
+                        f"Processed {file_path} ({processed_count}/{total_count})"
+                    )
 
                 except Exception as e:
                     logger.error(f"Failed to process {file_path}: {e}")

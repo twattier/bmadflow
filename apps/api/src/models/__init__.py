@@ -1,4 +1,5 @@
 """SQLAlchemy database models."""
+
 import uuid
 from datetime import datetime
 from sqlalchemy import text
@@ -10,6 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
+
     pass
 
 
