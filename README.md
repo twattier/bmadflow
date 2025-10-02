@@ -119,14 +119,14 @@ Current status: **66/66 tests passing** (100%)
 
 BMADFlow uses OLLAMA for local LLM inference with privacy-first configuration:
 - **Extraction Model**: `qwen2.5:3b` - Lightweight model for structured extraction
-- **Embedding Model**: `nomic-embed-text` - 768-dimensional embeddings
-- **Database Schema**: `vector(768)` for pgvector semantic search
+- **Embedding Model**: `nomic-embed-text` - Produces 768-dimensional embeddings
+- **Database Schema**: `vector(768)` column in documents table (aligned with model output)
 
 **Rationale:** Privacy (40% weight), zero cost, sufficient capability for POC
 
-⚠️ **Provider choice is PERMANENT** - Embedding dimension locked to 768d. Switching providers requires database migration.
+⚠️ **Provider choice is PERMANENT** - Embedding dimension locked to 768d. Switching providers requires database migration and re-embedding all documents.
 
-See `scripts/llm-evaluation/` for provider evaluation framework and configuration details.
+See `docs/llm-provider-evaluation.md` for provider selection rationale and trade-offs.
 
 ## Project Structure
 
