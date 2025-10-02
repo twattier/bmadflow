@@ -100,7 +100,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --prefix apps/web
 
       - name: Run ESLint
         run: npm run lint --prefix apps/web
