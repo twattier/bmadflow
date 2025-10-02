@@ -1,5 +1,7 @@
 # BMADFlow
 
+[![CI](https://github.com/twattier/bmadflow/actions/workflows/ci.yml/badge.svg)](https://github.com/twattier/bmadflow/actions/workflows/ci.yml)
+
 Project management and documentation visualization tool for BMAD methodology.
 
 ## Prerequisites
@@ -137,6 +139,54 @@ bmadflow/
 ├── docs/             # Project documentation
 └── scripts/          # Utility scripts
 ```
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing and quality checks.
+
+### Workflow Jobs
+
+**Backend CI:**
+- Black formatting check
+- Ruff linting
+- pytest with 50%+ coverage requirement
+- PostgreSQL service container for tests
+
+**Frontend CI:**
+- ESLint checks
+- TypeScript compilation
+- Vitest unit tests
+- Production build verification
+
+Both jobs run in parallel and must pass before merging to `main`.
+
+### Branch Protection Setup
+
+**For Repository Administrators:**
+
+1. Navigate to: **Settings** > **Branches**
+2. Add branch protection rule for `main`
+3. Enable: **"Require status checks to pass before merging"**
+4. Select required checks:
+   - `backend-ci`
+   - `frontend-ci`
+5. Enable: **"Require branches to be up to date before merging"**
+
+### Troubleshooting CI Failures
+
+**Backend Failures:**
+- Database connection errors: Verify PostgreSQL service container health checks
+- Missing environment variables: Check `DATABASE_URL`, `LLM_PROVIDER` settings
+- Import errors: Verify `requirements.txt` installed correctly
+
+**Frontend Failures:**
+- Type errors: Run `npm run type-check` locally before pushing
+- Linting errors: Run `npm run lint --fix` locally
+- Build errors: Check for missing imports or incorrect paths
+
+**Performance Issues:**
+- Slow installs: Check if dependency caching is working (logs show "Cache restored successfully")
+- Timeout errors: Default job timeout is 10 minutes
 
 ## License
 
