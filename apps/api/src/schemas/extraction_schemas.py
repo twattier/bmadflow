@@ -56,3 +56,52 @@ class ExtractedStorySchema(BaseModel):
             }
         }
     }
+
+
+class ExtractedEpicSchema(BaseModel):
+    """Schema for extracted epic metadata.
+
+    Used by EpicExtractionService to enforce structured LLM output.
+    All fields except title are optional to handle partial extraction gracefully.
+    """
+
+    epic_number: Optional[int] = Field(
+        None,
+        description="Epic number extracted from title (e.g., 'Epic 2' -> 2)",
+    )
+    title: str = Field(
+        ...,
+        description="Epic title extracted from heading",
+        max_length=500,
+    )
+    goal: Optional[str] = Field(
+        None,
+        description="Epic goal/description from Epic Goal or Epic Description section",
+    )
+    status: Optional[Literal["draft", "dev", "done"]] = Field(
+        None,
+        description="Epic status extracted from Status marker or inferred",
+    )
+    related_stories: Optional[List[str]] = Field(
+        None,
+        description="List of story file paths from markdown links",
+    )
+    confidence_score: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Extraction confidence (0.0-1.0) based on field completeness",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "epic_number": 2,
+                "title": "LLM-Powered Content Extraction",
+                "goal": "Implement OLLAMA-based extraction of structured information from BMAD markdown",
+                "status": "dev",
+                "related_stories": ["stories/story-2-1.md", "stories/story-2-2.md"],
+                "confidence_score": 1.0,
+            }
+        }
+    }
