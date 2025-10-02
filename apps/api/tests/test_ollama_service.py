@@ -193,8 +193,8 @@ async def test_health_check_model_not_loaded(ollama_service):
 async def test_health_check_service_timeout(ollama_service):
     """Test health check fails on service timeout."""
 
-    async def timeout_mock():
-        await asyncio.sleep(10)  # Simulate long delay
+    def timeout_mock():
+        raise asyncio.TimeoutError("Simulated timeout")
 
     with patch.object(ollama_service.client, "list", side_effect=timeout_mock):
         with pytest.raises(Exception) as exc_info:
