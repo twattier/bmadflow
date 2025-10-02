@@ -1,12 +1,6 @@
 """SQLAlchemy database models."""
 
-import uuid
-from datetime import datetime
-from sqlalchemy import text
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, DateTime
-from sqlalchemy.dialects.postgresql import UUID
 
 
 class Base(DeclarativeBase):

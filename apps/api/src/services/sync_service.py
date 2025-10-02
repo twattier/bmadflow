@@ -4,7 +4,7 @@ import asyncio
 import logging
 import re
 from datetime import datetime
-from typing import Dict, Tuple
+from typing import Dict
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from .github_service import GitHubService

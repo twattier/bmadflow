@@ -3,7 +3,6 @@
 import pytest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime
 from src.services.sync_service import SyncService, detect_doc_type, extract_title
 
 
@@ -274,7 +273,7 @@ async def test_sync_project_task_tracker_updates(sync_service, mock_db):
                         sync_service.document_repo, "upsert", new=AsyncMock()
                     ):
                         # Execute
-                        result = await sync_service.sync_project(
+                        await sync_service.sync_project(
                             project_id, task_tracker=task_tracker
                         )
 

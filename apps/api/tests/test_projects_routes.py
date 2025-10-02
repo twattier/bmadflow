@@ -5,10 +5,8 @@ import uuid
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 from httpx import AsyncClient, ASGITransport
-from fastapi import FastAPI
 from src.main import app
 from src.models.project import Project
-from src.models.document import Document
 
 
 @pytest.fixture

@@ -1,6 +1,5 @@
 """Relationship model for modeling relationships between documents."""
 
-from datetime import datetime
 from sqlalchemy import (
     Column,
     String,

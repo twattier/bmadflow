@@ -74,7 +74,7 @@ async def test_create(project_repo, mock_db):
     }
 
     # Mock the created project
-    created_project = Project(id=uuid.uuid4(), **project_data)
+    Project(id=uuid.uuid4(), **project_data)
 
     # Mock database operations
     mock_db.commit = AsyncMock()
@@ -82,7 +82,7 @@ async def test_create(project_repo, mock_db):
 
     with patch.object(Project, "__init__", return_value=None):
         # Execute
-        result = await project_repo.create(**project_data)
+        await project_repo.create(**project_data)
 
         # Assert
         mock_db.add.assert_called_once()
@@ -113,7 +113,7 @@ async def test_update(project_repo, mock_db):
     mock_db.refresh = AsyncMock()
 
     # Execute
-    result = await project_repo.update(project_id, sync_status="syncing")
+    await project_repo.update(project_id, sync_status="syncing")
 
     # Assert
     assert existing_project.sync_status == "syncing"

@@ -1,7 +1,7 @@
 """Unit tests for GitHub service."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from github import GithubException
 import requests
 
@@ -336,11 +336,11 @@ class TestGitHubServiceInit:
     @patch("src.services.github_service.Github")
     def test_init_with_token(self, mock_github_class):
         """Test initialization with token."""
-        service = GitHubService(token="test_token")
+        GitHubService(token="test_token")
         mock_github_class.assert_called_once_with("test_token")
 
     @patch("src.services.github_service.Github")
     def test_init_without_token(self, mock_github_class):
         """Test initialization without token."""
-        service = GitHubService()
+        GitHubService()
         mock_github_class.assert_called_once_with()

@@ -1,6 +1,5 @@
 """Document model for storing markdown files from GitHub repos."""
 
-from datetime import datetime
 from sqlalchemy import (
     Column,
     String,

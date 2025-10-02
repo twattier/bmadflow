@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { ClipboardList, Building2, BarChart3, Search } from 'lucide-react';
-import { cn } from '../../lib/utils.ts';
+import { cn } from '../../lib/utils.js';
 
 const tabs = [
   { to: '/scoping', label: 'Scoping', icon: ClipboardList },

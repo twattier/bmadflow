@@ -1,6 +1,5 @@
 """Project model for storing GitHub repository sync metadata."""
 
-from datetime import datetime
 from sqlalchemy import Column, String, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship

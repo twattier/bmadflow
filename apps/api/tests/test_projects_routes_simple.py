@@ -1,6 +1,5 @@
 """Simplified integration tests for project API routes."""
 
-import pytest
 from src.services.sync_service import detect_doc_type
 
 
