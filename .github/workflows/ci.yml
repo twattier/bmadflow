@@ -73,7 +73,7 @@ jobs:
             --cov-fail-under=50
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: coverage.xml
@@ -115,7 +115,7 @@ jobs:
         run: npm run build --prefix apps/web
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: apps/web/dist
