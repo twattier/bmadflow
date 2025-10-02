@@ -26,6 +26,18 @@ class EpicExtractionService:
     - Status (draft/dev/done)
     - Related story links (from markdown links)
 
+    Status Detection Logic:
+    1. First priority: Explicit status markers in various formats
+       - **Status:** Draft|Dev|Done
+       - Status: Draft|Dev|Done (no bold)
+       - [Status: Done] (bracketed)
+       - <!-- status: dev --> (HTML comment)
+    2. Second priority: LLM inference from content analysis
+       - All stories complete → "done"
+       - No stories started → "draft"
+       - Some stories complete → "dev"
+    3. Fallback: Regex pattern matching for explicit markers
+
     Implements graceful error handling - always returns a result, never fails.
     """
 
@@ -35,7 +47,12 @@ BMAD epics follow this format:
 - Epic title: Usually in heading like "# Epic N: Title" or "# Epic Title"
 - Epic number: Extracted from title (e.g., "Epic 2" -> 2)
 - Epic goal: Found in "## Epic Goal" or "## Epic Description" sections
-- Status: Usually marked as "**Status:** Draft" or "Status: Dev" or "Status: Done"
+- Status: Look for explicit markers in various formats:
+  * "**Status:** Draft" or "**Status:** Dev" or "**Status:** Done"
+  * "Status: Draft" (without bold formatting)
+  * "[Status: Done]" (bracketed format)
+  * "<!-- status: dev -->" (HTML comment format)
+  * All status markers are case-insensitive
 - Related stories: Markdown links to story files like "[Story 1.2](stories/story-1-2.md)"
 
 Extract these components accurately. If a component is missing, return null for that field.
@@ -57,9 +74,19 @@ Extract and return JSON with these fields:
 Look for:
 1. Epic title: First heading (# Epic N: Title)
 2. Epic goal: Content under "## Epic Goal" or "## Epic Description"
-3. Status: "**Status:** Draft", "Status: Dev", "Status: Done" (case-insensitive)
+3. Status markers FIRST (highest priority) in any of these formats (case-insensitive):
+   - "**Status:** Draft" or "**Status:** Dev" or "**Status:** Done"
+   - "Status: Draft" (without bold)
+   - "[Status: Done]" (bracketed)
+   - "<!-- status: dev -->" (HTML comment)
+   If no explicit marker, infer status from content:
+   - If all stories in epic are marked complete (✅ symbols or "complete" indicators) → "done"
+   - If no stories have been started (all pending ⏳ or no progress indicators) → "draft"
+   - If some stories complete but others pending → "dev"
+   - If unable to infer, return null
 4. Story links: Markdown links like "[Story 1.1](stories/story-1-1.md)"
 
+Always return status in lowercase: "draft", "dev", or "done".
 Return ONLY the JSON object, no additional text."""
 
     def __init__(
@@ -238,12 +265,23 @@ Return ONLY the JSON object, no additional text."""
             if title_match:
                 extracted["title"] = title_match.group(1).strip()
 
-        # Extract status
-        status_match = re.search(
-            r"\*\*Status:\*\*\s*(Draft|Dev|Done)", content, re.IGNORECASE
-        )
-        if status_match:
-            extracted["status"] = status_match.group(1).lower()
+        # Extract status: Multiple formats supported
+        # Format 1: **Status:** Draft or **Status:** Dev or **Status:** Done
+        # Format 2: Status: Draft (without bold)
+        # Format 3: [Status: Done] (bracketed)
+        # Format 4: <!-- status: dev --> (HTML comment)
+        status_patterns = [
+            r"\*\*Status:\*\*\s*(Draft|Dev|Done)",  # Bold with colon
+            r"Status:\s*(Draft|Dev|Done)",  # No bold
+            r"\[Status:\s*(Draft|Dev|Done)\]",  # Bracketed
+            r"<!--\s*status:\s*(draft|dev|done)\s*-->",  # HTML comment
+        ]
+
+        for pattern in status_patterns:
+            status_match = re.search(pattern, content, re.IGNORECASE)
+            if status_match:
+                extracted["status"] = status_match.group(1).lower()
+                break
 
         # Extract goal from Epic Goal or Epic Description section
         goal_match = re.search(

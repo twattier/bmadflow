@@ -253,3 +253,96 @@ async def test_empty_related_stories_handled(extraction_service, mock_ollama_ser
 
     # Empty array should reduce confidence
     assert result.confidence_score < 1.0
+
+
+# Story 2.4: Status Detection Enhancement Tests for Epics
+
+
+@pytest.mark.asyncio
+async def test_epic_status_bold_format(extraction_service):
+    """Test epic status detection with bold format: **Status:** Draft."""
+    doc = Mock(spec=Document)
+    doc.id = "epic-bold"
+    doc.content = """
+# Epic 1: Test Epic
+
+**Status:** Draft
+
+## Epic Goal
+
+Test epic goal
+"""
+
+    from unittest.mock import patch
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_epic(doc)
+        assert result.status == "draft"
+
+
+@pytest.mark.asyncio
+async def test_epic_status_bracketed_format(extraction_service):
+    """Test epic status detection with bracketed format."""
+    doc = Mock(spec=Document)
+    doc.id = "epic-bracketed"
+    doc.content = """
+# Epic 2: Test Epic
+
+[Status: Done]
+
+## Epic Goal
+
+Test epic goal
+"""
+
+    from unittest.mock import patch
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_epic(doc)
+        assert result.status == "done"
+
+
+@pytest.mark.asyncio
+async def test_epic_status_html_comment(extraction_service):
+    """Test epic status detection with HTML comment."""
+    doc = Mock(spec=Document)
+    doc.id = "epic-html"
+    doc.content = """
+# Epic 3: Test Epic
+
+<!-- status: dev -->
+
+## Epic Goal
+
+Test epic goal
+"""
+
+    from unittest.mock import patch
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_epic(doc)
+        assert result.status == "dev"
+
+
+@pytest.mark.asyncio
+async def test_epic_status_case_insensitive(extraction_service):
+    """Test that epic status detection is case-insensitive."""
+    test_cases = [
+        ("**STATUS:** DRAFT", "draft"),
+        ("Status: DEV", "dev"),
+        ("[Status: DONE]", "done"),
+    ]
+
+    for content_status, expected in test_cases:
+        doc = Mock(spec=Document)
+        doc.id = f"epic-case-{expected}"
+        doc.content = f"""
+# Epic: Test
+
+{content_status}
+
+## Epic Goal
+Test goal
+"""
+
+        from unittest.mock import patch
+        with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+            result = await extraction_service.extract_epic(doc)
+            assert result.status == expected

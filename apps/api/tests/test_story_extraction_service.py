@@ -263,3 +263,183 @@ async def test_empty_acceptance_criteria_handled(extraction_service, mock_ollama
     assert result.acceptance_criteria == []
     # Empty array counts as "not populated" for confidence
     assert result.confidence_score == 0.8  # 4 fields (role, action, benefit, status)
+
+
+# Story 2.4: Status Detection Enhancement Tests
+
+
+@pytest.mark.asyncio
+async def test_explicit_status_bold_format(extraction_service):
+    """Test status detection with bold format: **Status:** Draft."""
+    doc = Mock(spec=Document)
+    doc.id = "test-bold"
+    doc.content = """
+# Story 1.1
+
+**Status:** Draft
+
+**As a** developer,
+**I want** to test,
+**so that** it works.
+"""
+
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_story(doc)
+        assert result.status == "draft"
+
+
+@pytest.mark.asyncio
+async def test_explicit_status_plain_format(extraction_service):
+    """Test status detection with plain format: Status: Dev."""
+    doc = Mock(spec=Document)
+    doc.id = "test-plain"
+    doc.content = """
+# Story 1.2
+
+Status: Dev
+
+**As a** developer,
+**I want** to test,
+**so that** it works.
+"""
+
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_story(doc)
+        assert result.status == "dev"
+
+
+@pytest.mark.asyncio
+async def test_explicit_status_bracketed_format(extraction_service):
+    """Test status detection with bracketed format: [Status: Done]."""
+    doc = Mock(spec=Document)
+    doc.id = "test-bracketed"
+    doc.content = """
+# Story 1.3
+
+[Status: Done]
+
+**As a** developer,
+**I want** to test,
+**so that** it works.
+"""
+
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_story(doc)
+        assert result.status == "done"
+
+
+@pytest.mark.asyncio
+async def test_explicit_status_html_comment_format(extraction_service):
+    """Test status detection with HTML comment: <!-- status: dev -->."""
+    doc = Mock(spec=Document)
+    doc.id = "test-html"
+    doc.content = """
+# Story 1.4
+
+<!-- status: dev -->
+
+**As a** developer,
+**I want** to test,
+**so that** it works.
+"""
+
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_story(doc)
+        assert result.status == "dev"
+
+
+@pytest.mark.asyncio
+async def test_status_case_insensitive(extraction_service):
+    """Test that status detection is case-insensitive."""
+    test_cases = [
+        ("**STATUS:** DRAFT", "draft"),
+        ("Status: DEV", "dev"),
+        ("[Status: DONE]", "done"),
+        ("<!-- STATUS: DRAFT -->", "draft"),
+    ]
+
+    for content_status, expected in test_cases:
+        doc = Mock(spec=Document)
+        doc.id = f"test-case-{expected}"
+        doc.content = f"""
+# Story
+
+{content_status}
+
+**As a** developer,
+**I want** to test,
+**so that** it works.
+"""
+
+        with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+            result = await extraction_service.extract_story(doc)
+            assert result.status == expected, f"Expected {expected} for {content_status}"
+
+
+@pytest.mark.asyncio
+async def test_regex_fallback_tries_all_patterns(extraction_service):
+    """Test that regex fallback tries all status patterns in order."""
+    # Test pattern priority: bold > plain > bracketed > html comment
+    doc_with_multiple = Mock(spec=Document)
+    doc_with_multiple.id = "test-multiple"
+    doc_with_multiple.content = """
+# Story
+
+**Status:** Draft
+Status: Dev
+[Status: Done]
+
+**As a** developer,
+**I want** to test,
+**so that** it works.
+"""
+
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_story(doc_with_multiple)
+        # Should match first pattern (bold)
+        assert result.status == "draft"
+
+
+@pytest.mark.asyncio
+async def test_status_normalization_to_lowercase(extraction_service, mock_ollama_service, sample_document):
+    """Test that all status values are normalized to lowercase enum."""
+    test_cases = ["DRAFT", "Draft", "draft", "DEV", "Dev", "dev", "DONE", "Done", "done"]
+
+    for input_status in test_cases:
+        mock_ollama_service.generate.return_value = {
+            "content": json.dumps({
+                "role": "developer",
+                "action": "test",
+                "benefit": "verify",
+                "acceptance_criteria": ["AC1"],
+                "status": input_status
+            })
+        }
+
+        result = await extraction_service.extract_story(sample_document)
+        assert result.status in ["draft", "dev", "done"], \
+            f"Status {input_status} should normalize to draft/dev/done"
+        assert result.status == input_status.lower()
+
+
+@pytest.mark.asyncio
+async def test_status_inference_not_in_regex(extraction_service):
+    """Test that LLM inference is used when no explicit markers exist (regex returns None)."""
+    doc_no_marker = Mock(spec=Document)
+    doc_no_marker.id = "test-inference"
+    doc_no_marker.content = """
+# Story
+
+**As a** developer,
+**I want** to test inference,
+**so that** it works correctly.
+
+## Tasks
+- [x] All tasks complete
+- [x] Everything done
+"""
+
+    with patch.object(json, 'loads', side_effect=json.JSONDecodeError("test", "", 0)):
+        result = await extraction_service.extract_story(doc_no_marker)
+        # Regex won't find status, returns None
+        assert result.status is None  # Regex fallback has no inference logic
