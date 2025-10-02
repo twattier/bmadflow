@@ -10,7 +10,7 @@ Establish core infrastructure (Docker, Postgres, FastAPI, React + Vite + shadcn/
 
 This epic establishes the foundational infrastructure for BMADFlow, setting up the complete development environment and delivering the first visible increment: a working dashboard shell with 4-view navigation. By the end of this epic, developers can run the entire application locally with Docker Compose, the backend can sync GitHub repositories and store markdown files in PostgreSQL, and users can see the basic UI structure (Scoping, Architecture, Epics, Detail views).
 
-The epic includes critical infrastructure decisions like OLLAMA model selection (Story 1.7) and CI/CD pipeline setup (Story 1.8), ensuring the foundation supports the 4-6 week POC timeline.
+The epic includes critical infrastructure decisions like LLM provider selection (Story 1.7 - choosing between OLLAMA local or LiteLLM proxy based on privacy, capability, and embedding compatibility) and CI/CD pipeline setup (Story 1.8), ensuring the foundation supports the 4-6 week POC timeline.
 
 ## Stories
 
@@ -116,19 +116,20 @@ so that **I can load my documentation into BMADFlow**.
 9. After successful sync, project name appears in top navigation bar
 10. Manual test confirms: adding `github.com/bmad-code-org/BMAD-METHOD` repo completes sync flow end-to-end
 
-### Story 1.7: OLLAMA Model Benchmarking
+### Story 1.7: LLM Provider Selection and Validation
 
 As a **developer**,
-I want **to benchmark 3 LLM models on BMAD document extraction**,
-so that **Epic 2 can use the best-performing model**.
+I want **to evaluate OLLAMA (local) and LiteLLM proxy (remote) LLM provider options for BMAD document extraction**,
+so that **Epic 2 can use the selected provider with appropriate configuration**.
 
 **Acceptance Criteria:**
 
-1. Benchmark script tests 3 models: Llama 3 8B, Mistral 7B, one 13B model
-2. Test dataset: 50 BMAD sample documents (epics + stories from AgentLab repo or BMAD-METHOD repo)
-3. Measure for each model: (1) Extraction accuracy (manual validation on 20 samples), (2) Latency (avg time per document), (3) Resource usage (GPU/CPU/memory)
-4. Results documented in docs/model-benchmark-results.md with recommendation
-5. Selected model configured for Epic 2 Story 2.1
+1. Evaluation script tests 2 LLM provider options: OLLAMA local (qwen2.5:3b with nomic-embed-text) and OpenAI-compatible API via custom LiteLLM proxy (configurable endpoint + API key)
+2. Test dataset: 20 BMAD sample documents (10 epics + 10 stories from BMAD-METHOD repo) for extraction validation
+3. Measure for each provider: (1) Extraction accuracy (manual validation), (2) Latency per document, (3) Cost per document, (4) Embedding dimension compatibility
+4. Document critical finding: Embedding dimension mismatch issue (nomic-embed: 768d vs proxy dimension) prevents provider switching after initial data load
+5. Results documented in docs/llm-provider-evaluation.md with recommendation based on: privacy (weight: 40%), extraction capability (30%), cost (20%), latency (10%)
+6. Selected provider configured for Epic 2 with environment variables and architecture documentation updated
 
 ### Story 1.8: CI/CD Pipeline Setup
 
@@ -170,3 +171,4 @@ so that **code quality issues are caught early and deployment is automated**.
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2025-10-01 | 1.0 | Epic extracted from PRD v1.0 | Sarah (PO) |
+| 2025-10-02 | 1.1 | Updated Story 1.7: Changed from "OLLAMA Model Benchmarking" (3 models, 50 docs) to "LLM Provider Selection" (2 providers: OLLAMA vs LiteLLM proxy, 20 docs, embedding dimension analysis). Reflects actual requirement: select one provider for application, not compare multiple models. | Sarah (PO) |

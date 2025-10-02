@@ -45,7 +45,7 @@ Represents a single markdown file from GitHub repository.
 - `title`: string
 - `excerpt`: string
 - `last_modified`: datetime
-- `embedding`: vector(384) (Phase 2)
+- `embedding`: vector(768) - pgvector embedding for semantic search (OLLAMA nomic-embed-text, Story 1.7)
 - `extraction_status`: enum (`pending`, `processing`, `completed`, `failed`)
 - `extraction_confidence`: float (0.0-1.0)
 - `created_at`: datetime
@@ -176,6 +176,37 @@ interface GraphData {
     type: 'contains' | 'relates_to';
   }>;
 }
+```
+
+---
+
+## Embedding Dimension Configuration (Story 1.7)
+
+**Critical Constraint:** The embedding dimension is **permanently locked** once database schema is created.
+
+**Selected Configuration:**
+- **Provider:** OLLAMA (local)
+- **Model:** nomic-embed-text
+- **Dimension:** **768**
+- **pgvector Schema:** `embedding vector(768)`
+
+**Rationale:**
+- Privacy-first approach (40% weighting in decision criteria)
+- Zero cost for local inference
+- Sufficient capability for POC with qwen2.5:3b extraction model
+- Can upgrade to qwen2.5:7b if accuracy improvement needed
+
+**Migration Note:**
+Switching to a different provider (e.g., LiteLLM with 1536-dimensional embeddings) requires:
+1. Full database migration
+2. Re-embedding all documents
+3. Alembic migration to change vector dimension
+
+**Environment Configuration:**
+```bash
+LLM_PROVIDER=ollama
+OLLAMA_EMBEDDING_MODEL=nomic-embed-text
+OLLAMA_EMBEDDING_DIMENSION=768
 ```
 
 ---

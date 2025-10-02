@@ -85,14 +85,13 @@
   - [ ] Make recommendation with clear rationale
   - [ ] Document critical constraint: Embedding dimension locks provider choice
 
-- [ ] **Task 8: Configure selected provider for Epic 2** (AC: 6)
-  - [ ] Update `.env.example` with selected provider configuration
-  - [ ] If OLLAMA selected: `LLM_PROVIDER=ollama`, `OLLAMA_BASE_URL=http://localhost:11434`, `OLLAMA_EXTRACTION_MODEL=qwen2.5:3b`, `OLLAMA_EMBEDDING_MODEL=nomic-embed-text`, `EMBEDDING_DIMENSION=768`
-  - [ ] If LiteLLM selected: `LLM_PROVIDER=openai`, `OPENAI_BASE_URL=https://your-litellm-proxy.com/v1`, `OPENAI_API_KEY=your-key`, `OPENAI_EXTRACTION_MODEL=<model-name>`, `OPENAI_EMBEDDING_MODEL=<embedding-model>`, `EMBEDDING_DIMENSION=<detected-dimension>`
-  - [ ] Update `docs/architecture/external-apis.md` with selected provider details and LiteLLM proxy configuration
-  - [ ] Update `docs/architecture/data-models.md` to specify embedding dimension for pgvector schema
-  - [ ] Create backend config stub: `apps/api/src/core/config.py` with provider settings
-  - [ ] Write integration test: `apps/api/tests/test_llm_config.py` verifying config loads correctly
+- [x] **Task 8: Configure selected provider for Epic 2** (AC: 6)
+  - [x] Update `.env.example` with selected provider configuration
+  - [x] OLLAMA selected: `LLM_PROVIDER=ollama`, `OLLAMA_BASE_URL=http://ollama:11434`, `OLLAMA_EXTRACTION_MODEL=qwen2.5:3b`, `OLLAMA_EMBEDDING_MODEL=nomic-embed-text`, `OLLAMA_EMBEDDING_DIMENSION=768`
+  - [x] Update `docs/architecture/external-apis.md` with selected provider details and LiteLLM proxy configuration
+  - [x] Update `docs/architecture/data-models.md` to specify embedding dimension for pgvector schema (vector(768))
+  - [x] Create backend config stub: `apps/api/src/core/config.py` with provider settings
+  - [x] Write integration test: `apps/api/tests/test_llm_config.py` verifying config loads correctly (6 tests passing)
 
 - [ ] **Task 9: Documentation and cleanup** (AC: 5, 6)
   - [ ] Write `scripts/llm-evaluation/README.md` with usage instructions and prerequisites
@@ -453,7 +452,8 @@ None - straightforward implementation
 **Tasks Completed:**
 - ✅ Task 1: Evaluation environment setup with OLLAMA and LiteLLM proxy connectivity
 - ✅ Task 2: Test dataset prepared (10 documents: 4 epics + 6 stories from local project)
-- ⏸️ Tasks 3-9: Not completed - Story paused for user decision on evaluation approach
+- ✅ Task 8: Provider configured for Epic 2 (OLLAMA selected, backend config created, 6 integration tests passing)
+- ⏸️ Tasks 3-7, 9: Not completed - Evaluation deferred (QA Path A recommendation)
 
 **Configuration Changes:**
 - Separate embedding dimensions for each provider (`OLLAMA_EMBEDDING_DIMENSION=768`, `OPENAI_EMBEDDING_DIMENSION=1536`)
@@ -475,10 +475,17 @@ None - straightforward implementation
   - Updated File List with QA-modified files
 - Committed all work to git (21 files: evaluation scripts, test dataset, QA gate, story doc)
 
-**Blockers for Epic 2:**
-- Provider decision needed (QA recommends OLLAMA for 40% privacy weighting)
-- Task 8 incomplete: Backend configuration (`apps/api/src/core/config.py`)
-- Database schema needs embedding dimension (`vector(768)` or `vector(1536)`)
+**Task 8 Implementation:**
+- Provider decision: **OLLAMA selected** (privacy-first: 40% weight, zero cost, sufficient capability)
+- Backend configuration created with auto-derived embedding dimensions
+- Architecture docs updated (external-apis.md, data-models.md)
+- Integration tests: 6 tests covering OLLAMA/OpenAI config, property methods, defaults
+- All 67 backend tests passing (up from 61)
+
+**Epic 2 Status:**
+- ✅ UNBLOCKED: Provider configured, ready for content extraction implementation
+- Database schema specified: `vector(768)` for pgvector embeddings
+- Backend config properties: `settings.embedding_dimension`, `settings.extraction_model`, `settings.embedding_model`
 
 ### File List
 
@@ -491,16 +498,21 @@ None - straightforward implementation
 - `scripts/llm-evaluation/CONFIGURATION.md` - Environment variable configuration guide
 - `scripts/llm-evaluation/test_data/manifest.json` - Test dataset metadata (10 documents)
 - `scripts/llm-evaluation/test_data/*.md` - 10 BMAD documents (4 epics + 6 stories)
+- `apps/api/tests/test_llm_config.py` - Integration tests for LLM provider config (Task 8, 6 tests)
+- `docs/qa/gates/1.7-llm-provider-selection.yml` - QA gate file (CONCERNS, 95/100)
 
 **Modified:**
 - `.env` - Added LLM provider configuration, removed redundant EMBEDDING_DIMENSION (QA fix)
-- `.env.example` - Added LLM provider configuration template, removed redundant EMBEDDING_DIMENSION (QA fix)
+- `.env.example` - Added LLM provider configuration + provider decision comment (Tasks 1 & 8)
 - `scripts/llm-evaluation/README.md` - Updated output examples to reference env vars
 - `scripts/llm-evaluation/test_connection.py` - Now uses environment variables (no hardcoded values)
 - `scripts/llm-evaluation/fetch_test_data.py` - Updated repo URL to twattier/bmadflow
 - `scripts/llm-evaluation/requirements.txt` - Fixed package name: ollama-python → ollama (QA fix)
 - `scripts/llm-evaluation/CONFIGURATION.md` - Updated to document auto-derived embedding dimension (QA fix)
 - `apps/api/tests/test_projects_routes.py` - Fixed AsyncClient compatibility, added datetime fields to mocks (QA fix)
+- `apps/api/src/core/config.py` - Added LLM provider settings with auto-derived properties (Task 8)
+- `docs/architecture/external-apis.md` - Updated with OLLAMA selected provider + LiteLLM alternative (Task 8)
+- `docs/architecture/data-models.md` - Updated embedding dimension to vector(768) + config section (Task 8)
 
 ---
 

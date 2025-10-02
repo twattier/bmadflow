@@ -17,24 +17,53 @@
 - Implement exponential backoff for rate limit errors
 - Filter for `/docs` folder only
 
-## OLLAMA API (External Server)
+## OLLAMA API (Selected Provider - Story 1.7)
 
-- **Purpose:** LLM inference for extracting structured BMAD content
+- **Purpose:** Local LLM inference for extracting structured BMAD content
 - **Documentation:** https://github.com/jmorganca/ollama/blob/main/docs/api.md
-- **Base URL:** Configured via environment variable `OLLAMA_BASE_URL` (e.g., `http://your-ollama-server:11434`)
-- **Authentication:** None (configure if your server requires it)
-- **Rate Limits:** N/A (managed by your OLLAMA server)
+- **Base URL:** Configured via `OLLAMA_BASE_URL` environment variable
+  - Docker: `http://ollama:11434` (container networking)
+  - Host: `http://localhost:11434`
+- **Authentication:** None required (local server)
+- **Rate Limits:** None (local inference)
+
+**Selected Models (Story 1.7 Decision):**
+- **Extraction Model:** `qwen2.5:3b` - Lightweight model for structured extraction
+- **Embedding Model:** `nomic-embed-text` - 768-dimensional embeddings
+- **Rationale:** Privacy-first (40% weight), zero cost, sufficient capability for POC
 
 **Key Endpoints:**
-- `POST /api/generate` - Generate text completion
+- `POST /api/generate` - Generate text completion for extraction
+- `POST /api/embeddings` - Generate embeddings for semantic search
 - `GET /api/tags` - List available models
 
 **Integration Notes:**
-- Use `ollama-python` library configured to point to external server
+- Use `ollama` Python library (v0.3.0+)
+- Auto-detects Docker environment (container name vs localhost)
 - 30-second timeout per document (configurable via `OLLAMA_TIMEOUT`)
-- Your existing GPU-enabled OLLAMA server will be used
-- Model selection (Llama 3 8B or Mistral 7B) from Story 1.7 benchmarking
-- Backend connects to external OLLAMA server via HTTP API
-- Network connectivity required between backend and OLLAMA server
+- Embedding dimension: **768** (locked for pgvector schema)
+- Backend connects via Docker network (bmad-flow_bmadflow-network)
+
+## LiteLLM Proxy (Alternative Provider - Not Selected)
+
+- **Purpose:** OpenAI-compatible proxy for cloud LLM providers
+- **Documentation:** https://docs.litellm.ai/docs/
+- **Base URL:** Configured via `OPENAI_BASE_URL` environment variable
+- **Authentication:** API key via `OPENAI_API_KEY`
+- **Rate Limits:** Varies by backend provider
+
+**Configuration Example:**
+```bash
+OPENAI_BASE_URL=https://llmproxy.ai.orange
+OPENAI_API_KEY=sk-xxxxx
+OPENAI_EXTRACTION_MODEL=openai/gpt-4.1
+OPENAI_EMBEDDING_MODEL=openai/text-embedding-ada-002
+```
+
+**Integration Notes:**
+- Uses OpenAI Python SDK with custom `base_url` parameter
+- Provides OpenAI-compatible `/v1/chat/completions` and `/v1/embeddings` endpoints
+- Embedding dimension: **1536** (OpenAI ada-002)
+- **Not selected** for Story 1.7 due to privacy trade-off (40% weight)
 
 ---
