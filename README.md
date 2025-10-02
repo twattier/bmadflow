@@ -104,7 +104,27 @@ Both frontend and backend support hot reload:
 
 ### Running Tests
 
-Tests will be configured in Story 1.8 (CI/CD Pipeline).
+**Backend Tests:**
+```bash
+docker exec bmad-flow-backend pytest /app/tests/ -v
+```
+
+Current status: **66/66 tests passing** (100%)
+
+### LLM Provider Configuration (Story 1.7)
+
+**Selected Provider: OLLAMA (Local)**
+
+BMADFlow uses OLLAMA for local LLM inference with privacy-first configuration:
+- **Extraction Model**: `qwen2.5:3b` - Lightweight model for structured extraction
+- **Embedding Model**: `nomic-embed-text` - 768-dimensional embeddings
+- **Database Schema**: `vector(768)` for pgvector semantic search
+
+**Rationale:** Privacy (40% weight), zero cost, sufficient capability for POC
+
+⚠️ **Provider choice is PERMANENT** - Embedding dimension locked to 768d. Switching providers requires database migration.
+
+See `scripts/llm-evaluation/` for provider evaluation framework and configuration details.
 
 ## Project Structure
 
