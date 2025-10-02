@@ -1,0 +1,62 @@
+[
+  {
+    "file": "epic-1-foundation-github-dashboard.md",
+    "type": "epic",
+    "complexity": "high",
+    "description": "Large epic with 8 stories, complex infrastructure setup"
+  },
+  {
+    "file": "epic-2-llm-content-extraction.md",
+    "type": "epic",
+    "complexity": "medium",
+    "description": "Medium epic focused on LLM extraction features"
+  },
+  {
+    "file": "epic-3-multi-view-dashboard.md",
+    "type": "epic",
+    "complexity": "medium",
+    "description": "Dashboard views and navigation"
+  },
+  {
+    "file": "epic-4-epic-story-visualization.md",
+    "type": "epic",
+    "complexity": "medium",
+    "description": "Visualization features for epics and stories"
+  },
+  {
+    "file": "story-1-1-project-infrastructure-setup.md",
+    "type": "story",
+    "complexity": "high",
+    "description": "Large story with Docker, database, and infrastructure setup"
+  },
+  {
+    "file": "story-1-2-database-schema-for-documents.md",
+    "type": "story",
+    "complexity": "high",
+    "description": "Complex database schema with pgvector"
+  },
+  {
+    "file": "story-1-3-github-api-integration-fetch-repository-files.md",
+    "type": "story",
+    "complexity": "medium",
+    "description": "GitHub API integration"
+  },
+  {
+    "file": "story-1-4-manual-sync-api-endpoint.md",
+    "type": "story",
+    "complexity": "high",
+    "description": "API endpoint with background tasks and status tracking"
+  },
+  {
+    "file": "story-1-5-dashboard-shell-with-4-view-navigation.md",
+    "type": "story",
+    "complexity": "medium",
+    "description": "React dashboard with tab navigation"
+  },
+  {
+    "file": "story-1-6-project-setup-and-sync-ui.md",
+    "type": "story",
+    "complexity": "medium",
+    "description": "UI for project setup and sync with progress tracking"
+  }
+]
