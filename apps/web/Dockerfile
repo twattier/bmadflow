@@ -15,4 +15,5 @@ COPY . .
 EXPOSE 5173
 
 # Start development server (listen on 0.0.0.0 for Docker)
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Use exec to replace shell with vite process for proper signal handling
+CMD ["sh", "-c", "echo 'Starting Vite server...' && exec npx vite --host 0.0.0.0 2>&1"]
