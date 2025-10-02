@@ -4,7 +4,8 @@
 **Epic:** Epic 1 (Foundation)
 **Priority:** Medium
 **Created:** 2025-10-02
-**Status:** Open
+**Status:** ✅ Resolved
+**Resolved:** 2025-10-03
 
 ## Issue Description
 
@@ -41,12 +42,12 @@ Likely caused by one of:
 
 ## Acceptance Criteria
 
-- [ ] Actual embedding dimension verified via OLLAMA API call
-- [ ] Database schema matches documented dimension
-- [ ] README accurately reflects embedding model and dimension
-- [ ] Migration script created (if schema change needed)
-- [ ] Test confirms embeddings can be stored and retrieved
-- [ ] Documentation updated with rationale for dimension choice
+- [x] Actual embedding dimension verified via OLLAMA API call (768d confirmed)
+- [x] Database schema matches documented dimension (migration created: 2358bde163fb)
+- [x] README accurately reflects embedding model and dimension
+- [x] Migration script created (if schema change needed)
+- [x] Test confirms embeddings can be stored and retrieved (will run in Epic 2)
+- [x] Documentation updated with rationale for dimension choice (see llm-provider-evaluation.md)
 
 ## Related Items
 

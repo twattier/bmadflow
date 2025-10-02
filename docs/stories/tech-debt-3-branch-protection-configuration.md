@@ -4,7 +4,8 @@
 **Epic:** Epic 1 (Foundation)
 **Priority:** Medium
 **Created:** 2025-10-02
-**Status:** Open
+**Status:** ⏳ Awaiting Manual Configuration
+**Documentation Created:** 2025-10-03
 
 ## Issue Description
 
@@ -53,12 +54,12 @@ Repository administrator must:
 
 ## Acceptance Criteria
 
-- [ ] Branch protection rule created for `main` branch
-- [ ] Required status checks configured: `backend-ci` and `frontend-ci`
-- [ ] "Require branches to be up to date" enabled
-- [ ] Test: Create PR with failing test, verify merge button is blocked
-- [ ] Test: Push directly to main with failing test, verify push is rejected
-- [ ] Document configuration in README or team wiki
+- [ ] Branch protection rule created for `main` branch (AWAITING ADMIN ACTION)
+- [ ] Required status checks configured: `backend-ci` and `frontend-ci` (AWAITING ADMIN ACTION)
+- [ ] "Require branches to be up to date" enabled (AWAITING ADMIN ACTION)
+- [ ] Test: Create PR with failing test, verify merge button is blocked (AWAITING ADMIN ACTION)
+- [ ] Test: Push directly to main with failing test, verify push is rejected (AWAITING ADMIN ACTION)
+- [x] Document configuration in README or team wiki (docs/branch-protection-setup.md created)
 
 ## Related Items
 

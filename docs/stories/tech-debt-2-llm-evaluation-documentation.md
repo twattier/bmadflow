@@ -4,7 +4,8 @@
 **Epic:** Epic 1 (Foundation)
 **Priority:** Medium
 **Created:** 2025-10-02
-**Status:** Open
+**Status:** ✅ Resolved (Retroactive Documentation)
+**Resolved:** 2025-10-03
 
 ## Issue Description
 
@@ -57,11 +58,11 @@ Likely one of:
 ## Acceptance Criteria
 
 **Minimum (Retroactive Doc):**
-- [ ] `docs/llm-provider-evaluation.md` file created
-- [ ] Provider options documented with selection rationale
-- [ ] Trade-offs and limitations explicitly stated
-- [ ] Embedding dimension decision documented
-- [ ] Story 1.7 marked as "documented retroactively"
+- [x] `docs/llm-provider-evaluation.md` file created
+- [x] Provider options documented with selection rationale
+- [x] Trade-offs and limitations explicitly stated
+- [x] Embedding dimension decision documented
+- [x] Story 1.7 marked as "documented retroactively"
 
 **Ideal (Full Evaluation):**
 - [ ] Test dataset created (20 BMAD docs)
