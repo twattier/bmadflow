@@ -1,6 +1,6 @@
 # Epic 2: LLM-Powered Content Extraction
 
-**Status:** Draft
+**Status:** In Progress (1/9 stories complete)
 
 ## Epic Goal
 
@@ -12,7 +12,7 @@ This epic delivers the core AI-powered intelligence of BMADFlow: extracting stru
 
 The epic includes comprehensive extraction accuracy validation (Story 2.6) targeting 90%+ accuracy, with prompt engineering improvements (Stories 2.7a-c) to address any shortfalls. Extraction runs automatically after GitHub sync, making structured data immediately available for dashboard visualization.
 
-**Prerequisites:** Week 1 Story 1.7 completed - GPU availability confirmed and model selected based on benchmarking.
+**Prerequisites:** Week 1 Story 1.7 completed - LLM provider selected (OLLAMA) and models configured (`qwen2.5:7b-instruct-q4_K_M` for extraction, `nomic-embed-text` for embeddings). Story 2.1 creates extraction database tables.
 
 ## Stories
 
@@ -152,10 +152,11 @@ so that **AC extraction accuracy improves**.
 
 ## Dependencies
 
-- Epic 1 Story 1.7: OLLAMA model selected and benchmarked
-- Epic 1 Story 1.2: Database schema with extracted_stories/extracted_epics tables
-- Epic 1 Story 1.4: GitHub sync pipeline functional
-- External OLLAMA server with GPU recommended for <10 min sync times
+- ✅ Epic 1 Story 1.7: OLLAMA provider selected and models configured
+- ✅ Epic 1 Story 1.2: Database schema with base tables (documents, projects, relationships)
+- ✅ Epic 1 Story 1.4: GitHub sync pipeline functional
+- ✅ Story 2.1: Creates extraction tables (extracted_stories, extracted_epics) and OLLAMA service integration
+- External OLLAMA server running on localhost:11434 (CPU-compatible quantized models used)
 
 ## Success Metrics
 
@@ -168,8 +169,25 @@ so that **AC extraction accuracy improves**.
 
 **Target:** Week 2 of POC (5 working days)
 
+## Story Status Summary
+
+| Story | Status | Completion Date | Notes |
+|-------|--------|----------------|-------|
+| 2.1: OLLAMA Integration | ✅ Complete | 2025-10-03 | All 8 AC met. OLLAMA service, database schema, tests complete. |
+| 2.2: User Story Extraction | ⏳ Pending | - | Blocked by Story 2.1 (now unblocked) |
+| 2.3: Epic Extraction | ⏳ Pending | - | Blocked by Story 2.1 (now unblocked) |
+| 2.4: Status Detection | ⏳ Pending | - | - |
+| 2.5: Pipeline Integration | ⏳ Pending | - | - |
+| 2.6: Validation Tool | ⏳ Pending | - | - |
+| 2.7a: Prompt Engineering | ⏳ Pending | - | Conditional (if validation <90%) |
+| 2.7b: Status Fallback | ⏳ Pending | - | Conditional (if validation <90%) |
+| 2.7c: AC Parsing | ⏳ Pending | - | Conditional (if validation <90%) |
+
+**Progress:** 1/9 stories complete (11%)
+
 ## Change Log
 
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2025-10-01 | 1.0 | Epic extracted from PRD v1.0 | Sarah (PO) |
+| 2025-10-03 | 1.1 | Story 2.1 completed. Updated dependencies, prerequisites, and status tracking. | Claude (PM) |
