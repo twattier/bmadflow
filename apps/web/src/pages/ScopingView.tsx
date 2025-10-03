@@ -31,12 +31,12 @@ export default function ScopingView() {
   // AC7: Debounce search input (300ms)
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // TEMPORARY FIX FOR MANUAL TESTING: Hardcode test project ID
-  const testProjectId = '550e8400-e29b-41d4-a716-446655440000';
+  // TEMPORARY FIX FOR MANUAL TESTING: Hardcode agent-lab project ID
+  const agentLabProjectId = '7e4d469f-dd82-42ab-93a1-bc240e175c29';
 
   // AC1: Fetch scoping documents with React Query
   const { data: documents, isLoading, isError } = useDocuments({
-    projectId: currentProject?.id || testProjectId,
+    projectId: currentProject?.id || agentLabProjectId,
     docType: 'scoping',
   });
 

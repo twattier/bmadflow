@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
+import os
 
 from src.core.database import get_db, init_db, engine
 from src.routes.projects import router as projects_router
@@ -12,10 +13,11 @@ from src.services.ollama_service import OllamaService
 
 app = FastAPI(title="BMADFlow API", version="1.0.0")
 
-# Configure CORS
+# Configure CORS with dynamic frontend port from environment
+FRONTEND_PORT = os.getenv("FRONTEND_PORT", "5173")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend origin
+    allow_origins=[f"http://localhost:{FRONTEND_PORT}"],  # Frontend origin from .env
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

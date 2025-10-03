@@ -13,10 +13,10 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: parseInt(process.env.FRONTEND_PORT || '5173'),
     proxy: {
       '/api': {
-        target: 'http://bmad-flow-backend:8000',
+        target: process.env.VITE_API_URL || `http://localhost:${process.env.BACKEND_PORT || '8003'}`,
         changeOrigin: true,
       },
     },

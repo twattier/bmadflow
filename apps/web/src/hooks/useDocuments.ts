@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../services/apiClient';
-import type { Document, DocType } from '../types/document';
+import type { Document, DocType, DocumentDetailResponse } from '../types/document';
 
 interface UseDocumentsOptions {
   projectId: string;
@@ -21,5 +21,19 @@ export function useDocuments({ projectId, docType }: UseDocumentsOptions) {
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     enabled: !!projectId, // Only fetch if projectId is available
+  });
+}
+
+export function useDocument(documentId: string) {
+  return useQuery({
+    queryKey: ['document', documentId],
+    queryFn: async () => {
+      const response = await apiClient.get<DocumentDetailResponse>(`/documents/${documentId}`);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    enabled: !!documentId,
   });
 }

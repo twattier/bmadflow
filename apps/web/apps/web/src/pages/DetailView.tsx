@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useDocument } from '../hooks/useDocuments';
 import MarkdownRenderer from '../components/markdown/MarkdownRenderer';
 import MarkdownLoadingSkeleton from '../components/markdown/MarkdownLoadingSkeleton';
-import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
 export default function DetailView() {
