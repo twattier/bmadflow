@@ -5,6 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db, init_db, engine
 from src.routes.projects import router as projects_router
+from src.routes.documents import router as documents_router
+from src.routes.epics import router as epics_router
+from src.routes.relationships import router as relationships_router
 from src.services.ollama_service import OllamaService
 
 app = FastAPI(title="BMADFlow API", version="1.0.0")
@@ -20,6 +23,9 @@ app.add_middleware(
 
 # Register routers
 app.include_router(projects_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
+app.include_router(epics_router, prefix="/api")
+app.include_router(relationships_router, prefix="/api")
 
 
 @app.on_event("startup")

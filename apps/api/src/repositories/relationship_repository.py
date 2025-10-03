@@ -74,3 +74,113 @@ class RelationshipRepository(BaseRepository[Relationship]):
             select(Relationship).where(Relationship.parent_doc_id == parent_doc_id)
         )
         return list(result.scalars().all())
+
+    async def get_graph_data(
+        self, project_id: UUID, epic_id: Optional[UUID] = None
+    ) -> dict:
+        """Get epic-story relationship graph data.
+
+        Args:
+            project_id: Project UUID
+            epic_id: Optional epic ID to filter relationships
+
+        Returns:
+            Dictionary with 'nodes' and 'edges' lists
+        """
+        from sqlalchemy.orm import joinedload
+        from src.models.extracted_epic import ExtractedEpic
+        from src.models.extracted_story import ExtractedStory
+        from src.models.document import Document
+
+        nodes = []
+        edges = []
+
+        # Get epics (filtered by epic_id if provided)
+        epic_query = (
+            select(ExtractedEpic)
+            .join(ExtractedEpic.document)
+            .where(Document.project_id == project_id)
+            .options(joinedload(ExtractedEpic.document))
+        )
+
+        if epic_id:
+            epic_query = epic_query.where(ExtractedEpic.id == epic_id)
+
+        epic_result = await self.db.execute(epic_query)
+        epics = list(epic_result.unique().scalars().all())
+
+        # Add epic nodes
+        epic_doc_ids = set()
+        for epic in epics:
+            nodes.append(
+                {
+                    "id": str(epic.id),
+                    "title": epic.title,
+                    "type": "epic",
+                    "status": epic.status,
+                    "document_id": str(epic.document_id),
+                }
+            )
+            epic_doc_ids.add(epic.document_id)
+
+        if not epic_doc_ids:
+            return {"nodes": nodes, "edges": edges}
+
+        # Get relationships for these epics
+        relationship_query = (
+            select(Relationship)
+            .where(Relationship.parent_doc_id.in_(epic_doc_ids))
+            .options(
+                joinedload(Relationship.parent_document),
+                joinedload(Relationship.child_document),
+            )
+        )
+
+        rel_result = await self.db.execute(relationship_query)
+        relationships = list(rel_result.unique().scalars().all())
+
+        # Get story IDs from relationships
+        story_doc_ids = set(rel.child_doc_id for rel in relationships)
+
+        # Get stories
+        if story_doc_ids:
+            story_query = (
+                select(ExtractedStory)
+                .where(ExtractedStory.document_id.in_(story_doc_ids))
+                .options(joinedload(ExtractedStory.document))
+            )
+
+            story_result = await self.db.execute(story_query)
+            stories = list(story_result.unique().scalars().all())
+
+            # Add story nodes
+            for story in stories:
+                title = f"Story: {story.role}" if story.role else "Story"
+                nodes.append(
+                    {
+                        "id": str(story.id),
+                        "title": title,
+                        "type": "story",
+                        "status": story.status or "draft",
+                        "document_id": str(story.document_id),
+                    }
+                )
+
+            # Build edges (map document_id to extracted entity id)
+            doc_to_epic = {epic.document_id: epic.id for epic in epics}
+            doc_to_story = {story.document_id: story.id for story in stories}
+
+            for rel in relationships:
+                source_id = doc_to_epic.get(rel.parent_doc_id)
+                target_id = doc_to_story.get(rel.child_doc_id)
+
+                if source_id and target_id:
+                    edges.append(
+                        {
+                            "source_id": str(source_id),
+                            "target_id": str(target_id),
+                            "type": rel.relationship_type,
+                        }
+                    )
+
+        return {"nodes": nodes, "edges": edges}
