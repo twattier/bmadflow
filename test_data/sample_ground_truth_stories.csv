@@ -1,0 +1,6 @@
+document_id,expected_role,expected_action,expected_benefit,expected_status,expected_ac_count
+docs/stories/story-2-1-ollama-integration.md,backend developer,OLLAMA configured with selected LLM model,extraction pipeline can perform inference on markdown documents,done,8
+docs/stories/story-2-2-user-story-extraction.md,backend developer,LLM to extract user story components from story markdown files,structured story data can be displayed in the dashboard,done,6
+docs/stories/story-2-3-epic-extraction.md,backend developer,LLM to extract epic metadata from epic markdown files,epic information can be displayed and linked to stories,done,6
+docs/stories/story-2-4-status-detection.md,backend developer,LLM to detect document status indicators,dashboard can display color-coded status (draft/dev/done),done,6
+docs/stories/story-2-5-extraction-pipeline-integration.md,backend developer,extraction automatically triggered after GitHub sync completes,extracted data is available immediately without manual step,done,7

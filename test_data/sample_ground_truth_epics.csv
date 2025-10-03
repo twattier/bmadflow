@@ -1,0 +1,5 @@
+document_id,expected_title,expected_goal,expected_status,expected_story_count
+docs/epics/epic-1-foundation-github-dashboard.md,Foundation GitHub Integration Dashboard Shell,Establish core infrastructure and deliver working dashboard shell,done,8
+docs/epics/epic-2-llm-content-extraction.md,LLM-Powered Content Extraction,Implement OLLAMA-based extraction of structured information from BMAD markdown,in progress,9
+docs/epics/epic-3-multi-view-dashboard.md,Multi-View Documentation Dashboard,Create 4-view dashboard with beautiful markdown rendering,draft,8
+docs/epics/epic-4-epic-story-visualization.md,Epic-Story Relationship Visualization,Build table/list visualization of epic-to-story relationships,draft,8
