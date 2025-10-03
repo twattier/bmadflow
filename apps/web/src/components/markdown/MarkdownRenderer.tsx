@@ -1,10 +1,11 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import CodeBlock from './CodeBlock';
 import MermaidBlock from './MermaidBlock';
+import { generateHeadingId } from '../../utils/headingId';
 import './markdown.css';
 
 interface MarkdownRendererProps {
@@ -14,6 +15,22 @@ interface MarkdownRendererProps {
 }
 
 function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  // Pre-generate all heading IDs in a single pass to avoid StrictMode double-render issues
+  const headingIds = useMemo(() => {
+    const headingRegex = /^(#{2,3})\s+(.+)$/gm;
+    const matches = Array.from(content.matchAll(headingRegex));
+    const idCounts = new Map<string, number>();
+    const ids = new Map<string, string>();
+
+    matches.forEach((match) => {
+      const text = match[2].trim();
+      const id = generateHeadingId(text, idCounts);
+      ids.set(text, id);
+    });
+
+    return ids;
+  }, [content]);
+
   // enableMermaid and enableTOC for future stories 3.5 and 3.3
 
   // Handle escaped newlines from database (\\n -> \n)
@@ -89,8 +106,19 @@ function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 </code>
               );
             },
+            // Add IDs to H2 and H3 headings for TOC scroll targets
+            h2({ children, ...props }) {
+              const text = String(children);
+              const id = headingIds.get(text) || text.toLowerCase().replace(/\s+/g, '-');
+              return <h2 id={id} {...props}>{children}</h2>;
+            },
+            h3({ children, ...props }) {
+              const text = String(children);
+              const id = headingIds.get(text) || text.toLowerCase().replace(/\s+/g, '-');
+              return <h3 id={id} {...props}>{children}</h3>;
+            },
             // External links open in new tab
-            a({ node, children, href, ...props }) {
+            a({ children, href, ...props }) {
               const isExternal = href?.startsWith('http://') || href?.startsWith('https://');
               if (isExternal) {
                 return (
