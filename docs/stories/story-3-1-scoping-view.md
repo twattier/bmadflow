@@ -894,3 +894,10 @@ describe('ScopingView Integration', () => {
 ---
 
 **Final Status:** ✅ **COMPLETE - PRODUCTION READY**
+
+---
+
+## Manual Testing
+
+**Manual test results:** See [story-3-1-manual-test-results.md](../testing/story-3-1-manual-test-results.md)
+
