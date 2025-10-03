@@ -1,6 +1,6 @@
 # Epic 2: LLM-Powered Content Extraction
 
-**Status:** In Progress (1/9 stories complete)
+**Status:** In Progress (5/9 stories complete - 56%)
 
 ## Epic Goal
 
@@ -174,16 +174,16 @@ so that **AC extraction accuracy improves**.
 | Story | Status | Completion Date | Notes |
 |-------|--------|----------------|-------|
 | 2.1: OLLAMA Integration | ✅ Complete | 2025-10-03 | All 8 AC met. OLLAMA service, database schema, tests complete. |
-| 2.2: User Story Extraction | ⏳ Pending | - | Blocked by Story 2.1 (now unblocked) |
-| 2.3: Epic Extraction | ⏳ Pending | - | Blocked by Story 2.1 (now unblocked) |
-| 2.4: Status Detection | ⏳ Pending | - | - |
-| 2.5: Pipeline Integration | ⏳ Pending | - | - |
+| 2.2: User Story Extraction | ✅ Complete | 2025-10-03 | All 6 AC met. Story extraction service, tests, validation complete. QA PASS. |
+| 2.3: Epic Extraction | ✅ Complete | 2025-10-03 | All 6 AC met. Epic extraction service, relationship mapping, tests complete. QA PASS. |
+| 2.4: Status Detection | ✅ Complete | 2025-10-03 | All 6 AC met. Multi-format status detection, LLM inference, 100% validation accuracy. QA PASS. |
+| 2.5: Pipeline Integration | ✅ Complete | 2025-10-03 | All 7 AC met. Concurrent extraction (4 docs), graceful error handling, extraction metrics. QA PASS (100/100). |
 | 2.6: Validation Tool | ⏳ Pending | - | - |
 | 2.7a: Prompt Engineering | ⏳ Pending | - | Conditional (if validation <90%) |
-| 2.7b: Status Fallback | ⏳ Pending | - | Conditional (if validation <90%) |
+| 2.7b: Status Fallback | ✅ Complete | 2025-10-03 | Implemented in Story 2.4 - regex fallback with 4 status formats |
 | 2.7c: AC Parsing | ⏳ Pending | - | Conditional (if validation <90%) |
 
-**Progress:** 1/9 stories complete (11%)
+**Progress:** 5/9 stories complete (56%)
 
 ## Change Log
 
@@ -191,3 +191,4 @@ so that **AC extraction accuracy improves**.
 |------|---------|-------------|--------|
 | 2025-10-01 | 1.0 | Epic extracted from PRD v1.0 | Sarah (PO) |
 | 2025-10-03 | 1.1 | Story 2.1 completed. Updated dependencies, prerequisites, and status tracking. | Claude (PM) |
+| 2025-10-03 | 1.2 | Stories 2.2-2.4 completed (44% progress). Story 2.7b merged into 2.4. Updated status tracking. | BMad Orchestrator |

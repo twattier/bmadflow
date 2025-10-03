@@ -127,13 +127,20 @@ async def test_sync_project_success(sync_service, mock_db):
                     with patch.object(
                         sync_service.document_repo, "upsert", new=AsyncMock()
                     ):
-                        # Execute
-                        result = await sync_service.sync_project(project_id)
+                        with patch.object(
+                            sync_service.document_repo,
+                            "get_by_project_id",
+                            return_value=[],  # No extractable documents (non-epic/story)
+                        ):
+                            # Execute
+                            result = await sync_service.sync_project(project_id)
 
-                        # Assert
-                        assert result["processed_count"] == 2
-                        assert result["total_count"] == 2
-                        assert len(result["failed_files"]) == 0
+                            # Assert
+                            assert result["processed_count"] == 2
+                            assert result["total_count"] == 2
+                            assert len(result["failed_files"]) == 0
+                            assert "extraction_summary" in result
+                            assert result["extraction_summary"]["total_documents"] == 0
 
 
 @pytest.mark.asyncio
@@ -186,13 +193,18 @@ async def test_sync_project_partial_failure(sync_service, mock_db):
                     with patch.object(
                         sync_service.document_repo, "upsert", side_effect=mock_upsert
                     ):
-                        # Execute
-                        result = await sync_service.sync_project(project_id)
+                        with patch.object(
+                            sync_service.document_repo,
+                            "get_by_project_id",
+                            return_value=[],
+                        ):
+                            # Execute
+                            result = await sync_service.sync_project(project_id)
 
-                        # Assert - 9/10 files processed (90%), should succeed
-                        assert result["processed_count"] == 9
-                        assert result["total_count"] == 10
-                        assert len(result["failed_files"]) == 1
+                            # Assert - 9/10 files processed (90%), should succeed
+                            assert result["processed_count"] == 9
+                            assert result["total_count"] == 10
+                            assert len(result["failed_files"]) == 1
 
 
 @pytest.mark.asyncio
@@ -234,9 +246,14 @@ async def test_sync_project_major_failure(sync_service, mock_db):
                     with patch.object(
                         sync_service.document_repo, "upsert", side_effect=mock_upsert
                     ):
-                        # Execute and assert
-                        with pytest.raises(ValueError, match="Sync failed"):
-                            await sync_service.sync_project(project_id)
+                        with patch.object(
+                            sync_service.document_repo,
+                            "get_by_project_id",
+                            return_value=[],
+                        ):
+                            # Execute and assert
+                            with pytest.raises(ValueError, match="Sync failed"):
+                                await sync_service.sync_project(project_id)
 
 
 @pytest.mark.asyncio
@@ -272,12 +289,20 @@ async def test_sync_project_task_tracker_updates(sync_service, mock_db):
                     with patch.object(
                         sync_service.document_repo, "upsert", new=AsyncMock()
                     ):
-                        # Execute
-                        await sync_service.sync_project(
-                            project_id, task_tracker=task_tracker
-                        )
+                        with patch.object(
+                            sync_service.document_repo,
+                            "get_by_project_id",
+                            return_value=[],
+                        ):
+                            # Execute
+                            await sync_service.sync_project(
+                                project_id, task_tracker=task_tracker
+                            )
 
-                        # Assert task tracker was updated
-                        assert task_tracker["total_count"] == 2
-                        assert task_tracker["processed_count"] == 2
-                        assert task_tracker["current_file"] == "docs/prd/file2.md"
+                            # Assert task tracker was updated
+                            assert task_tracker["total_count"] == 2
+                            assert task_tracker["processed_count"] == 2
+                            # New extraction phase tracking
+                            assert "extraction_phase" in task_tracker
+                            assert task_tracker["extraction_phase"] == "completed"
+                            assert task_tracker["current_file"] == "docs/prd/file2.md"

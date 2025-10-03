@@ -23,3 +23,10 @@ class SyncStatusResponse(BaseModel):
         None, description="Error message if sync failed"
     )
     retry_allowed: bool = Field(False, description="Whether retry is allowed")
+
+    # Extraction phase tracking (Story 2.5)
+    extraction_phase: Optional[str] = Field(
+        None, description="Extraction phase: pending/extracting/completed"
+    )
+    extracted_count: int = Field(0, description="Number of documents extracted")
+    extraction_failures: int = Field(0, description="Number of extraction failures")
