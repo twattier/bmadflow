@@ -12,6 +12,7 @@ services:
       - ../apps/web/src:/app/src
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://backend:8000
     depends_on:
       - backend
     networks:
@@ -24,11 +25,11 @@ services:
       context: ../apps/api
       dockerfile: Dockerfile
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:-8003}:8000"
     volumes:
       - ../apps/api/src:/app/src
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql+asyncpg://bmadflow:bmadflow_dev@postgres:5432/bmadflow
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,9 +57,10 @@ services:
       - bmadflow-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bmadflow}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   pgadmin:
     container_name: bmad-flow-pgadmin

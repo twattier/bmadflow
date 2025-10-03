@@ -1,0 +1,60 @@
+schema: 1
+story: "3.6.1"
+story_title: "Epics View - Polish & Complete"
+gate: CONCERNS
+status_reason: "Core functionality fully working in Docker. Backend endpoint validated (18 epics with fallback). Integration working after vite restart. Concerns: 3 backend unit tests failing (mock setup issue), no frontend unit tests (POC acceptable)."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-03T15:35:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "TEST-001"
+    severity: medium
+    finding: "3 backend unit tests failing - mocking not working correctly (test returns empty array)"
+    suggested_action: "Fix test mocking setup in test_epics_routes.py - actual endpoint works, test infrastructure issue"
+    refs: ["apps/api/tests/test_epics_routes.py:34-82"]
+  - id: "TEST-002"
+    severity: medium
+    finding: "No frontend unit tests implemented (useEpics hook, StatusBadge component, sorting logic)"
+    suggested_action: "Add critical frontend tests before production - acceptable for POC but creates risk"
+    refs: ["Story tasks 2,3,5,6 - all frontend test tasks unchecked"]
+  - id: "TECH-DEBT-001"
+    severity: low
+    finding: "Pydantic V2 deprecation warnings (class-based config) and FastAPI on_event deprecation"
+    suggested_action: "Migrate to ConfigDict and lifespan event handlers - low priority technical debt"
+    refs: ["src/main.py:37,43"]
+
+quality_score: 80
+expires: "2025-10-17T00:00:00Z"
+
+evidence:
+  tests_reviewed: 5
+  risks_identified: 4
+  trace:
+    ac_covered: [1, 2, 3, 4, 5]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "No security concerns - read-only endpoint with existing auth patterns"
+  performance:
+    status: PASS
+    notes: "Query optimized with manual join, React Query caching implemented (5min stale time)"
+  reliability:
+    status: PASS
+    notes: "Integration working in Docker - frontend proxy connects to backend successfully, 18 epics returned with fallback values"
+  maintainability:
+    status: PASS
+    notes: "Good separation of concerns, follows project structure, clear naming"
+
+recommendations:
+  immediate:
+    - action: "Fix failing backend unit tests - mock setup issue (actual endpoint works, test infrastructure problem)"
+      refs: ["apps/api/tests/test_epics_routes.py:34-82"]
+  future:
+    - action: "Add frontend unit tests for useEpics, StatusBadge, sorting logic"
+      refs: ["apps/web/src/hooks/__tests__/", "apps/web/src/components/__tests__/"]
+    - action: "Migrate Pydantic models to ConfigDict, FastAPI to lifespan handlers"
+      refs: ["src/main.py", "src/schemas/"]

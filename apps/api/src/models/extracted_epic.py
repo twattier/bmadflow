@@ -25,15 +25,17 @@ class ExtractedEpic(Base):
         nullable=False,
         unique=True,
     )
-    epic_number = Column(Integer, nullable=True)
     title = Column(String(500), nullable=False)
     goal = Column(String, nullable=True)
     status = Column(String(50), nullable=False, server_default=text("'draft'"))
-    story_count = Column(Integer, nullable=False, server_default=text("0"))
+    related_stories = Column(String, nullable=True)
     confidence_score = Column(Float, nullable=True)
-    extracted_at = Column(
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+    updated_at = Column(
         DateTime(timezone=True), nullable=False, server_default=text("NOW()")
     )
 
     # Relationships
-    document = relationship("Document", backref="extracted_epic")
+    document = relationship("Document", back_populates="extracted_epic")

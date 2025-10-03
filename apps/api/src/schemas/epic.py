@@ -3,32 +3,36 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class DocumentInfo(BaseModel):
-    """Embedded document info in epic response."""
+class ExtractedEpicData(BaseModel):
+    """Nested extracted epic metadata."""
 
-    file_path: str
-    last_modified: Optional[datetime] = None
+    status: str = Field(..., description="Epic status: draft, dev, or done")
+    story_count: int = Field(0, description="Number of stories in this epic")
 
     class Config:
         from_attributes = True
 
 
-class EpicListResponse(BaseModel):
-    """Response schema for epic list with extracted metadata."""
+class EpicResponse(BaseModel):
+    """Response schema for epic with document and extracted data."""
 
+    # Document fields
     id: UUID
-    document_id: UUID
-    epic_number: Optional[int] = None
+    project_id: UUID
+    file_path: str
+    content: str
+    doc_type: str
     title: str
-    goal: Optional[str] = None
-    status: str
-    story_count: int
-    confidence_score: Optional[float] = None
-    extracted_at: datetime
-    document: DocumentInfo
+    excerpt: Optional[str] = None
+    last_modified: Optional[datetime] = None
+
+    # Nested extracted_epic data
+    extracted_epic: Optional[ExtractedEpicData] = Field(
+        None, description="Extracted epic metadata, null if not yet extracted"
+    )
 
     class Config:
         from_attributes = True

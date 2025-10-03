@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from src.core.database import get_db, init_db, engine
 from src.routes.projects import router as projects_router

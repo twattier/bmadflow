@@ -51,6 +51,12 @@ class Document(Base):
 
     # Relationships
     project = relationship("Project", back_populates="documents")
+    extracted_epic = relationship(
+        "ExtractedEpic",
+        back_populates="document",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
     parent_relationships = relationship(
         "Relationship",
         foreign_keys="Relationship.child_doc_id",

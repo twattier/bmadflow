@@ -1,25 +1,18 @@
-"""Integration tests for epic API routes (Story 3.0 - AC3)."""
+"""Integration tests for epic API routes (Story 3.6.1)."""
 
 import pytest
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from httpx import AsyncClient, ASGITransport
 from src.main import app
 
 
 @pytest.fixture
-def client():
+async def client():
     """Create async HTTP client for testing."""
-    return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-
-
-def create_mock_epic(**kwargs):
-    """Helper to create mock epic object with document relationship."""
-    mock_epic = MagicMock()
-    for key, value in kwargs.items():
-        setattr(mock_epic, key, value)
-    return mock_epic
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
 
 
 def create_mock_document(**kwargs):
@@ -30,39 +23,46 @@ def create_mock_document(**kwargs):
     return mock_doc
 
 
+def create_mock_extracted_epic(**kwargs):
+    """Helper to create mock extracted epic object."""
+    mock_epic = MagicMock()
+    for key, value in kwargs.items():
+        setattr(mock_epic, key, value)
+    return mock_epic
+
+
 @pytest.mark.asyncio
-async def test_get_epics_by_project(client):
-    """Test AC3: Get all epics for a project with extracted metadata."""
+async def test_get_epics_with_extracted_data(client):
+    """Test GET /api/epics returns documents with extracted_epic data."""
     project_id = uuid.uuid4()
     doc_id = uuid.uuid4()
 
-    with patch("src.repositories.epic_repository.EpicRepository") as mock_epic_repo_class:
-        mock_epic_repo = AsyncMock()
+    # Mock extracted epic with related_stories field
+    extracted_epic = create_mock_extracted_epic(
+        id=uuid.uuid4(),
+        document_id=doc_id,
+        status="dev",
+        related_stories="story-1-1, story-1-2, story-1-3, story-1-4, story-1-5",
+    )
 
-        # Mock document
-        document = create_mock_document(
-            id=doc_id,
-            project_id=project_id,
-            file_path="docs/epics/epic-1.md",
-            last_modified=datetime.now(timezone.utc),
-        )
+    # Mock document with extracted_epic relationship
+    document = create_mock_document(
+        id=doc_id,
+        project_id=project_id,
+        file_path="docs/epics/epic-1-foundation.md",
+        content="# Epic 1",
+        doc_type="epic",
+        title="Foundation & Infrastructure",
+        excerpt="Build core foundation...",
+        last_modified=datetime.now(timezone.utc),
+        extracted_epic=extracted_epic,
+    )
 
-        # Mock epic with document relationship
-        epic = create_mock_epic(
-            id=uuid.uuid4(),
-            document_id=doc_id,
-            epic_number=1,
-            title="Foundation, GitHub Integration & Dashboard Shell",
-            goal="Establish core infrastructure...",
-            status="done",
-            story_count=8,
-            confidence_score=0.95,
-            extracted_at=datetime.now(timezone.utc),
-        )
-        epic.document = document  # Set relationship
-
-        mock_epic_repo.get_by_project.return_value = [epic]
-        mock_epic_repo_class.return_value = mock_epic_repo
+    # Patch at the module level where it's used
+    with patch("src.routes.epics.EpicRepository") as MockRepo:
+        mock_instance = AsyncMock()
+        mock_instance.get_by_project = AsyncMock(return_value=[document])
+        MockRepo.return_value = mock_instance
 
         # Execute
         response = await client.get(f"/api/epics?project_id={project_id}")
@@ -71,52 +71,110 @@ async def test_get_epics_by_project(client):
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        assert data[0]["epic_number"] == 1
-        assert data[0]["title"] == "Foundation, GitHub Integration & Dashboard Shell"
-        assert data[0]["goal"] == "Establish core infrastructure..."
-        assert data[0]["status"] == "done"
-        assert data[0]["story_count"] == 8
-        assert data[0]["confidence_score"] == 0.95
-        assert data[0]["document"]["file_path"] == "docs/epics/epic-1.md"
-
-        # Verify repository called with correct params
-        mock_epic_repo.get_by_project.assert_called_once_with(project_id)
+        assert data[0]["id"] == str(doc_id)
+        assert data[0]["file_path"] == "docs/epics/epic-1-foundation.md"
+        assert data[0]["doc_type"] == "epic"
+        assert data[0]["extracted_epic"]["status"] == "dev"
+        assert data[0]["extracted_epic"]["story_count"] == 5
 
 
 @pytest.mark.asyncio
-async def test_get_epics_sorted_by_epic_number(client):
-    """Test AC3: Epics are sorted by epic_number (ascending)."""
+async def test_get_epics_without_extracted_data(client):
+    """Test GET /api/epics with fallback for documents without extracted_epic."""
+    project_id = uuid.uuid4()
+    doc_id = uuid.uuid4()
+
+    # Mock document WITHOUT extracted_epic (None)
+    document = create_mock_document(
+        id=doc_id,
+        project_id=project_id,
+        file_path="docs/epics/epic-2-new.md",
+        content="# Epic 2",
+        doc_type="epic",
+        title="New Epic",
+        excerpt="Not yet extracted...",
+        last_modified=datetime.now(timezone.utc),
+        extracted_epic=None,  # No extracted data
+    )
+
+    with patch("src.routes.epics.EpicRepository") as MockRepo:
+        mock_instance = AsyncMock()
+        mock_instance.get_by_project = AsyncMock(return_value=[document])
+        MockRepo.return_value = mock_instance
+
+        # Execute
+        response = await client.get(f"/api/epics?project_id={project_id}")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["id"] == str(doc_id)
+        # Verify fallback values
+        assert data[0]["extracted_epic"]["status"] == "draft"
+        assert data[0]["extracted_epic"]["story_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_get_epics_multiple_with_mixed_data(client):
+    """Test GET /api/epics with multiple epics, some with and some without extracted data."""
     project_id = uuid.uuid4()
 
-    with patch("src.repositories.epic_repository.EpicRepository") as mock_epic_repo_class:
-        mock_epic_repo = AsyncMock()
+    # Epic 1: Has extracted data with related_stories
+    extracted_1 = create_mock_extracted_epic(
+        id=uuid.uuid4(),
+        document_id=uuid.uuid4(),
+        status="done",
+        related_stories="s1, s2, s3, s4, s5, s6, s7, s8",
+    )
+    doc1 = create_mock_document(
+        id=uuid.uuid4(),
+        project_id=project_id,
+        file_path="docs/epics/epic-1.md",
+        content="# Epic 1",
+        doc_type="epic",
+        title="Epic 1",
+        excerpt="",
+        last_modified=datetime.now(timezone.utc),
+        extracted_epic=extracted_1,
+    )
 
-        # Create multiple epics with different numbers
-        epics = []
-        for num in [1, 2, 3]:  # Already sorted (repository does sorting)
-            doc = create_mock_document(
-                id=uuid.uuid4(),
-                project_id=project_id,
-                file_path=f"docs/epics/epic-{num}.md",
-                last_modified=datetime.now(timezone.utc),
-            )
+    # Epic 2: No extracted data
+    doc2 = create_mock_document(
+        id=uuid.uuid4(),
+        project_id=project_id,
+        file_path="docs/epics/epic-2.md",
+        content="# Epic 2",
+        doc_type="epic",
+        title="Epic 2",
+        excerpt="",
+        last_modified=datetime.now(timezone.utc),
+        extracted_epic=None,
+    )
 
-            epic = create_mock_epic(
-                id=uuid.uuid4(),
-                document_id=doc.id,
-                epic_number=num,
-                title=f"Epic {num} Title",
-                goal=f"Epic {num} goal...",
-                status="draft",
-                story_count=5,
-                confidence_score=0.9,
-                extracted_at=datetime.now(timezone.utc),
-            )
-            epic.document = doc
-            epics.append(epic)
+    # Epic 3: Has extracted data with related_stories
+    extracted_3 = create_mock_extracted_epic(
+        id=uuid.uuid4(),
+        document_id=uuid.uuid4(),
+        status="dev",
+        related_stories="s1, s2, s3",
+    )
+    doc3 = create_mock_document(
+        id=uuid.uuid4(),
+        project_id=project_id,
+        file_path="docs/epics/epic-3.md",
+        content="# Epic 3",
+        doc_type="epic",
+        title="Epic 3",
+        excerpt="",
+        last_modified=datetime.now(timezone.utc),
+        extracted_epic=extracted_3,
+    )
 
-        mock_epic_repo.get_by_project.return_value = epics
-        mock_epic_repo_class.return_value = mock_epic_repo
+    with patch("src.routes.epics.EpicRepository") as MockRepo:
+        mock_instance = AsyncMock()
+        mock_instance.get_by_project = AsyncMock(return_value=[doc1, doc2, doc3])
+        MockRepo.return_value = mock_instance
 
         # Execute
         response = await client.get(f"/api/epics?project_id={project_id}")
@@ -125,21 +183,29 @@ async def test_get_epics_sorted_by_epic_number(client):
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 3
-        # Verify sorted order
-        assert data[0]["epic_number"] == 1
-        assert data[1]["epic_number"] == 2
-        assert data[2]["epic_number"] == 3
+
+        # Epic 1: Has extracted data
+        assert data[0]["extracted_epic"]["status"] == "done"
+        assert data[0]["extracted_epic"]["story_count"] == 8
+
+        # Epic 2: Fallback values
+        assert data[1]["extracted_epic"]["status"] == "draft"
+        assert data[1]["extracted_epic"]["story_count"] == 0
+
+        # Epic 3: Has extracted data
+        assert data[2]["extracted_epic"]["status"] == "dev"
+        assert data[2]["extracted_epic"]["story_count"] == 3
 
 
 @pytest.mark.asyncio
 async def test_get_epics_empty_array(client):
-    """Test AC3: Return empty array if no epics found."""
+    """Test GET /api/epics returns empty array if no epics found."""
     project_id = uuid.uuid4()
 
-    with patch("src.repositories.epic_repository.EpicRepository") as mock_epic_repo_class:
-        mock_epic_repo = AsyncMock()
-        mock_epic_repo.get_by_project.return_value = []
-        mock_epic_repo_class.return_value = mock_epic_repo
+    with patch("src.routes.epics.EpicRepository") as MockRepo:
+        mock_instance = AsyncMock()
+        mock_instance.get_by_project = AsyncMock(return_value=[])
+        MockRepo.return_value = mock_instance
 
         # Execute
         response = await client.get(f"/api/epics?project_id={project_id}")
@@ -151,7 +217,7 @@ async def test_get_epics_empty_array(client):
 
 @pytest.mark.asyncio
 async def test_get_epics_missing_project_id(client):
-    """Test AC3: Return 422 if project_id query parameter is missing."""
+    """Test GET /api/epics returns 422 if project_id is missing."""
     # Execute without project_id
     response = await client.get("/api/epics")
 
@@ -159,99 +225,3 @@ async def test_get_epics_missing_project_id(client):
     assert response.status_code == 422
     error_detail = response.json()["detail"]
     assert any("project_id" in str(err).lower() for err in error_detail)
-
-
-@pytest.mark.asyncio
-async def test_get_epics_includes_document_metadata(client):
-    """Test AC3: Response includes document title, file_path, last_modified."""
-    project_id = uuid.uuid4()
-    doc_id = uuid.uuid4()
-    last_modified = datetime(2025, 10, 1, 14, 32, 15, tzinfo=timezone.utc)
-
-    with patch("src.repositories.epic_repository.EpicRepository") as mock_epic_repo_class:
-        mock_epic_repo = AsyncMock()
-
-        # Mock document with specific metadata
-        document = create_mock_document(
-            id=doc_id,
-            project_id=project_id,
-            file_path="docs/epics/epic-2.md",
-            last_modified=last_modified,
-        )
-
-        epic = create_mock_epic(
-            id=uuid.uuid4(),
-            document_id=doc_id,
-            epic_number=2,
-            title="AI-Powered Extraction Engine",
-            goal="Build OLLAMA-based extraction...",
-            status="in_progress",
-            story_count=12,
-            confidence_score=0.97,
-            extracted_at=datetime.now(timezone.utc),
-        )
-        epic.document = document
-
-        mock_epic_repo.get_by_project.return_value = [epic]
-        mock_epic_repo_class.return_value = mock_epic_repo
-
-        # Execute
-        response = await client.get(f"/api/epics?project_id={project_id}")
-
-        # Assert
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 1
-
-        # Verify document metadata is included
-        doc_data = data[0]["document"]
-        assert doc_data["file_path"] == "docs/epics/epic-2.md"
-        assert doc_data["last_modified"] == last_modified.isoformat().replace(
-            "+00:00", "Z"
-        )
-
-
-@pytest.mark.asyncio
-async def test_get_epics_with_null_optional_fields(client):
-    """Test AC3: Handle epics with null optional fields (epic_number, goal, confidence_score)."""
-    project_id = uuid.uuid4()
-    doc_id = uuid.uuid4()
-
-    with patch("src.repositories.epic_repository.EpicRepository") as mock_epic_repo_class:
-        mock_epic_repo = AsyncMock()
-
-        document = create_mock_document(
-            id=doc_id,
-            project_id=project_id,
-            file_path="docs/epics/epic-draft.md",
-            last_modified=datetime.now(timezone.utc),
-        )
-
-        # Epic with null optional fields
-        epic = create_mock_epic(
-            id=uuid.uuid4(),
-            document_id=doc_id,
-            epic_number=None,  # Optional
-            title="Draft Epic (No Number)",
-            goal=None,  # Optional
-            status="draft",
-            story_count=0,
-            confidence_score=None,  # Optional
-            extracted_at=datetime.now(timezone.utc),
-        )
-        epic.document = document
-
-        mock_epic_repo.get_by_project.return_value = [epic]
-        mock_epic_repo_class.return_value = mock_epic_repo
-
-        # Execute
-        response = await client.get(f"/api/epics?project_id={project_id}")
-
-        # Assert
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 1
-        assert data[0]["epic_number"] is None
-        assert data[0]["goal"] is None
-        assert data[0]["confidence_score"] is None
-        assert data[0]["title"] == "Draft Epic (No Number)"
