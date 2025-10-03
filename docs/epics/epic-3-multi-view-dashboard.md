@@ -373,6 +373,100 @@ All critical requirements are met, dependencies resolved, and risks mitigated. E
 
 **Overall PRD Coverage:** 98% (8/9 requirements fully covered, 1 needs testing validation)
 
+## Current Status & Revised Plan
+
+**Last Updated:** 2025-10-03 (Post Story 3.2 Completion)
+
+### 🎉 Major Progress: Bonus Features Delivered
+
+Story 3.2 exceeded expectations by delivering **bonus implementations** of Stories 3.4, 3.5, and 3.6 alongside the core markdown rendering requirements. This represents **significant scope acceleration**.
+
+### ✅ Completed Stories
+
+| Story | Status | QA Score | Completion Date | Notes |
+|-------|--------|----------|-----------------|-------|
+| 3.0 | ✅ Done | - | 2025-10-03 | Backend API endpoints |
+| 3.1 | ✅ Done | - | 2025-10-03 | Scoping View with search/filter |
+| 3.2 | ✅ Done | 98/100 | 2025-10-03 | **BONUS:** Also delivered 3.4, 3.5, 3.6 implementations |
+
+### 🔧 Partially Complete (Needs Polish)
+
+| Story | Implementation % | Missing AC | Effort | Priority |
+|-------|------------------|------------|--------|----------|
+| **3.4: Architecture View** | ~85% | Featured card layout, arch icons | 2h | Medium |
+| **3.5: Mermaid Diagrams** | ~90% | Test all diagram types | 1-2h | Low |
+| **3.6: Epics View** | ~85% | Status badges, story count, rollup widget | 4h | High |
+
+**Subtotal Polish Effort:** ~7 hours
+
+### ⏳ Remaining Stories (Not Started)
+
+| Story | Status | Estimated Effort | Complexity | Priority |
+|-------|--------|------------------|------------|----------|
+| **3.3: Table of Contents** | Not Started | 6-8h | Medium | High |
+| **3.7: Inter-Document Links** | Not Started | 10-12h | High | High |
+| **3.8: Sync Status Indicator** | Not Started | 6-8h | Medium | Medium |
+
+**Subtotal New Features Effort:** ~22-28 hours
+
+### 📊 Revised Epic 3 Timeline
+
+**Original Estimate:** 54-72 hours (7-9 days)
+**Work Completed:** ~25 hours (Stories 3.0, 3.1, 3.2 + bonus 3.4/3.5/3.6)
+**Remaining Effort:** ~29-35 hours (4-5 days)
+
+**Revised Total Epic Effort:** ~54-60 hours actual (vs 54-72h estimated) ✅ **ON TRACK**
+
+### 🎯 Recommended Approach: Consolidate Remaining Work
+
+**Phase 1: Polish Bonus Features** (~7 hours, 1 day)
+1. Complete Story 3.6 (Epics View) - 4h - **PRIORITY**
+   - Add status badges, story count, rollup widget
+2. Polish Story 3.4 (Architecture View) - 2h
+   - Featured card layout, architecture icons
+3. Validate Story 3.5 (Mermaid) - 1-2h
+   - Test all diagram types (sequence, class, ER, C4)
+
+**Phase 2: Core Features** (~22-28 hours, 3-4 days)
+1. Story 3.3: Table of Contents - 6-8h
+2. Story 3.7: Inter-Document Links - 10-12h (**HIGH COMPLEXITY**)
+3. Story 3.8: Sync Status Indicator - 6-8h
+
+**Total Remaining:** 4-5 days to Epic 3 completion
+
+### 📋 Story 3.6 Polish - Detailed AC Gap
+
+**Missing Acceptance Criteria:**
+
+**AC2:** List/table with columns: Title, **Status**, **Story Count**, Last Modified
+- Current: Cards show Title, Excerpt, Last Modified
+- Need: Add Status badge and Story Count fields
+
+**AC3:** Color-coded status badges (Draft=gray, Dev=blue, Done=green)
+- Need: Parse status from epic content or metadata
+- Implementation: Badge component with conditional styling
+
+**AC4:** Story Count from relationships table
+- Need: Backend query to count child documents where `relationship_type = 'contains'`
+- Backend endpoint: `GET /api/epics/{id}/story-count` or include in main epic response
+
+**AC6:** Sort by filename/number (epic-1, epic-2, epic-3)
+- Need: Implement natural sort on `file_path` field
+- Regex: Extract number from `epic-{n}` pattern
+
+**AC7:** Status rollup widget at top
+- Need: Aggregate status counts across all epics
+- Display: "X epics total | Y draft, Z in dev, W done"
+
+**Implementation Priority:**
+1. **HIGH:** AC4 (Story Count) - Requires backend changes
+2. **HIGH:** AC3 (Status Badges) - Core functionality
+3. **MEDIUM:** AC7 (Rollup Widget) - Nice UX enhancement
+4. **MEDIUM:** AC2 (Table Layout) - Layout refinement
+5. **LOW:** AC6 (Sorting) - Polish detail
+
+---
+
 ## Change Log
 
 | Date | Version | Description | Author |
@@ -380,3 +474,4 @@ All critical requirements are met, dependencies resolved, and risks mitigated. E
 | 2025-10-01 | 1.0 | Epic extracted from PRD v1.0 | Sarah (PO) |
 | 2025-10-03 | 1.1 | **Pre-requisites complete:** Story 3.0 (Backend API Endpoints) implemented and tested. Frontend dependencies installed (react-markdown, mermaid, prismjs, remark-gfm, rehype-raw). Story 3.7 AC updated with backend link resolution approach. Epic ready to start. | Claude (PM) |
 | 2025-10-03 | 1.2 | **PO Review Complete (Grade: A-):** Added 6 new AC across 4 stories (security, performance, accessibility, edge cases). Added effort estimates (54-72h), development strategy with story order, risk management with mitigation plans, QA strategy, and comprehensive PRD alignment matrix. Status changed to "Approved for Development". 60+ total AC across 8 stories. | Claude (PO) |
+| 2025-10-03 | 1.3 | **Major Progress Update:** Story 3.2 completed with bonus implementations of Stories 3.4, 3.5, 3.6 (~85-90% each). Added "Current Status & Revised Plan" section with remaining work breakdown. Phase 1 (Polish): ~7h. Phase 2 (New Features): ~22-28h. Revised timeline: 4-5 days to epic completion. Epic remains on track (54-60h actual vs 54-72h estimated). Detailed Story 3.6 AC gap analysis added. | Sarah (PO) |
