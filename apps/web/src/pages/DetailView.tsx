@@ -1,6 +1,8 @@
 import { useParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDocument } from '../hooks/useDocuments';
+import { useProjectById } from '../hooks/useProjects';
+import { useProject } from '../stores/ProjectContext';
 import MarkdownRenderer from '../components/markdown/MarkdownRenderer';
 import TableOfContents from '../components/markdown/TableOfContents';
 import MarkdownLoadingSkeleton from '../components/markdown/MarkdownLoadingSkeleton';
@@ -11,6 +13,19 @@ export default function DetailView() {
   const { documentId } = useParams<{ documentId: string }>();
   const { data: document, isLoading, error } = useDocument(documentId || '');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { currentProject, setCurrentProject } = useProject();
+
+  // Load project context from document if not already set
+  const { data: fetchedProject } = useProjectById(
+    document?.project_id && !currentProject ? document.project_id : null
+  );
+
+  // Set project context when fetched
+  useEffect(() => {
+    if (fetchedProject && !currentProject) {
+      setCurrentProject(fetchedProject);
+    }
+  }, [fetchedProject, currentProject, setCurrentProject]);
 
   if (isLoading) {
     return <MarkdownLoadingSkeleton />;
@@ -66,7 +81,10 @@ export default function DetailView() {
           ${sidebarOpen ? 'lg:ml-0' : 'lg:ml-0'}
         `}
       >
-        <MarkdownRenderer content={document.content} />
+        <MarkdownRenderer
+          content={document.content}
+          sourceDocumentPath={document.file_path}
+        />
       </main>
     </div>
   );

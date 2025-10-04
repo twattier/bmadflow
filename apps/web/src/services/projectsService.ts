@@ -1,6 +1,11 @@
 import apiClient from './apiClient';
 import type { Project, SyncStatusResponse, SyncTriggerResponse } from '../types/project';
 
+export async function getProject(projectId: string): Promise<Project> {
+  const response = await apiClient.get<Project>(`/projects/${projectId}`);
+  return response.data;
+}
+
 export async function createProject(githubUrl: string): Promise<Project> {
   const response = await apiClient.post<Project>('/projects', {
     github_url: githubUrl,

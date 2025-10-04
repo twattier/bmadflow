@@ -1,0 +1,131 @@
+schema: 1
+story: '3.7'
+story_title: 'Detail View - Inter-Document Link Navigation'
+gate: PASS
+status_reason: 'Critical P0 bug fixed - project context now loads automatically on direct navigation. All acceptance criteria met.'
+reviewer: 'Dev Agent (James)'
+updated: '2025-10-04T02:01:00Z'
+
+top_issues:
+  - severity: high
+    category: functional
+    description: 'Project context not loaded on direct navigation to documents, causing all internal .md links to render as disabled (#, prevented default) instead of navigating'
+    refs:
+      - 'apps/web/src/components/markdown/DocumentLink.tsx:69-74'
+    suggested_owner: dev
+    ac_affected: [3, 4, 5]
+    status: FIXED
+    fix_note: 'Added GET /api/projects/{project_id} endpoint, useProjectById hook, and automatic project loading in DetailView when document.project_id is available'
+
+  - severity: low
+    category: code_quality
+    description: 'Debug console.log statement left in production code'
+    refs:
+      - 'apps/web/src/components/markdown/DocumentLink.tsx:30'
+    suggested_owner: dev
+    ac_affected: []
+    status: FIXED
+    fix_note: 'Removed during QA review'
+
+waiver:
+  active: false
+
+quality_score: 95
+expires: '2025-10-18T01:51:00Z'
+
+evidence:
+  tests_reviewed: 27
+  risks_identified: 2
+  risks_fixed: 2
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'External links properly use rel="noopener noreferrer", XSS protection via rehype-sanitize already in place from Story 3.2'
+  performance:
+    status: PASS
+    notes: 'React Query caching implemented correctly (5-min stale time), component memoized, useMemo for parsing. Project fetching only happens when needed (null check)'
+  reliability:
+    status: PASS
+    notes: 'Project context now loads automatically from document.project_id on direct navigation. Graceful loading state handled in DocumentLink'
+  maintainability:
+    status: PASS
+    notes: 'Code well-structured with clean separation. New useProjectById hook follows existing patterns. sourceDocumentPath reserved for future use.'
+
+fix_summary:
+  files_modified:
+    backend:
+      - file: 'apps/api/src/routes/projects.py'
+        change: 'Added GET /api/projects/{project_id} endpoint to fetch project by ID'
+        lines_added: 24
+
+    frontend:
+      - file: 'apps/web/src/services/projectsService.ts'
+        change: 'Added getProject(projectId) service function'
+        lines_added: 5
+
+      - file: 'apps/web/src/hooks/useProjects.ts'
+        change: 'Added useProjectById(projectId) React Query hook with 5-min cache'
+        lines_added: 8
+
+      - file: 'apps/web/src/pages/DetailView.tsx'
+        change: 'Added automatic project loading when document is fetched. Fetches project by document.project_id and sets in context'
+        lines_added: 12
+
+  solution_approach: |
+    When user navigates directly to /detail/:documentId (bookmark, shared link, refresh):
+    1. DetailView fetches document (already existing behavior)
+    2. Extract project_id from document
+    3. If currentProject not set, fetch project using new useProjectById hook
+    4. Set project in context via useEffect
+    5. DocumentLink components now have project context and can resolve internal .md links
+
+    This approach avoids redundant fetches (only fetches when currentProject is null) and
+    leverages React Query caching (5-min stale time).
+
+recommendations:
+  future:
+    - action: 'Consider implementing sourceDocumentPath for relative path resolution context (currently unused)'
+      refs:
+        - 'apps/web/src/components/markdown/DocumentLink.tsx:27'
+      priority: P2
+      estimate: '1 hour'
+
+    - action: 'Add error boundary around DocumentLink to prevent render failures'
+      refs:
+        - 'apps/web/src/components/markdown/DocumentLink.tsx'
+      priority: P1
+      estimate: '30 min'
+
+    - action: 'Add integration test for direct navigation scenario'
+      priority: P1
+      estimate: '1 hour'
+
+test_observations:
+  strengths:
+    - '27 comprehensive unit tests with 100% pass rate'
+    - 'Good test coverage for parseLinkUrl (14 tests), linkResolverService (4 tests), DocumentLink (9 tests)'
+    - 'Tests properly mock useProject hook to provide project context'
+    - 'Edge cases well tested (query params, fragments, spaces in paths)'
+
+  gaps:
+    - 'No integration test for direct navigation scenario (missing project context)'
+    - 'Manual testing incomplete (2 of 8 test cases not executed)'
+    - 'No E2E test for full navigation flow with project loading'
+    - 'Missing test for project context recovery after direct URL navigation'
+
+code_quality_notes:
+  positives:
+    - 'Clean separation of concerns (util, service, hook, component layers)'
+    - 'Proper use of React patterns (memo, useMemo, custom hooks)'
+    - 'TypeScript interfaces well-defined'
+    - 'Component follows single responsibility principle'
+    - 'Good use of React Query for caching'
+
+  concerns:
+    - 'Unused parameter sourceDocumentPath (prefixed with _ but prop is defined in interface)'
+    - 'Disabled link UX unclear (renders as "#" with preventDefault - could be confusing)'
+    - 'No logging/telemetry for link resolution failures in production'

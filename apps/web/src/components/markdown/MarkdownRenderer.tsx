@@ -5,16 +5,18 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import CodeBlock from './CodeBlock';
 import MermaidBlock from './MermaidBlock';
+import { DocumentLink } from './DocumentLink';
 import { generateHeadingId } from '../../utils/headingId';
 import './markdown.css';
 
 interface MarkdownRendererProps {
   content: string;
+  sourceDocumentPath?: string; // For resolving relative links (Story 3.7)
   enableMermaid?: boolean;  // For future Story 3.5
   enableTOC?: boolean;       // For future Story 3.3
 }
 
-function MarkdownRenderer({ content }: MarkdownRendererProps) {
+function MarkdownRenderer({ content, sourceDocumentPath }: MarkdownRendererProps) {
   // Pre-generate all heading IDs in a single pass to avoid StrictMode double-render issues
   const headingIds = useMemo(() => {
     const headingRegex = /^(#{2,3})\s+(.+)$/gm;
@@ -117,22 +119,17 @@ function MarkdownRenderer({ content }: MarkdownRendererProps) {
               const id = headingIds.get(text) || text.toLowerCase().replace(/\s+/g, '-');
               return <h3 id={id} {...props}>{children}</h3>;
             },
-            // External links open in new tab
+            // Smart links - use DocumentLink component for inter-document navigation
             a({ children, href, ...props }) {
-              const isExternal = href?.startsWith('http://') || href?.startsWith('https://');
-              if (isExternal) {
-                return (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    {...props}
-                  >
-                    {children}
-                  </a>
-                );
-              }
-              return <a href={href} {...props}>{children}</a>;
+              return (
+                <DocumentLink
+                  href={href || ''}
+                  sourceDocumentPath={sourceDocumentPath}
+                  {...props}
+                >
+                  {children}
+                </DocumentLink>
+              );
             },
           }}
         >

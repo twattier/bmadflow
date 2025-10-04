@@ -1,6 +1,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createProject, triggerSync, getSyncStatus } from '../services/projectsService';
-import type { SyncStatusResponse } from '../types/project';
+import { getProject, createProject, triggerSync, getSyncStatus } from '../services/projectsService';
+import type { Project, SyncStatusResponse } from '../types/project';
+
+export function useProjectById(projectId: string | null) {
+  return useQuery<Project>({
+    queryKey: ['project', projectId],
+    queryFn: () => getProject(projectId!),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
 
 export function useCreateProject() {
   return useMutation({

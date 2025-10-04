@@ -182,6 +182,32 @@ async def trigger_sync(
     return SyncTaskResponse(sync_task_id=task_id, message="Sync started")
 
 
+@router.get("/{project_id}", response_model=ProjectResponse)
+async def get_project(project_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    """Get a project by ID.
+
+    Args:
+        project_id: Project UUID
+        db: Database session
+
+    Returns:
+        Project details
+
+    Raises:
+        HTTPException: 404 if project not found
+    """
+    project_repo = ProjectRepository(db)
+    project = await project_repo.get_by_id(project_id)
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project not found: {project_id}",
+        )
+
+    return project
+
+
 @router.get("/{project_id}/sync-status", response_model=SyncStatusResponse)
 async def get_sync_status(project_id: uuid.UUID):
     """Get sync status for a project.
