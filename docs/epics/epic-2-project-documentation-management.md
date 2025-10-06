@@ -55,14 +55,24 @@ Enable users to create Projects and configure ProjectDocs linked to GitHub repos
 **so that** I can identify documentation files to sync.
 
 **Acceptance Criteria:**
-1. GitHub API client implemented using requests library (unauthenticated, 60 req/hr limit)
-2. Function to fetch repository tree recursively for specified folder path
-3. Filter files by supported extensions: .md, .csv, .yaml, .yml, .json, .txt
-4. GitHub rate limit detection: parse `X-RateLimit-Remaining` header
-5. Exponential backoff retry logic when rate limit approached (< 5 remaining)
-6. Clear error messages when rate limit exceeded (show time until reset from `X-RateLimit-Reset` header)
-7. Unit tests with mocked GitHub API responses
-8. Integration test with real public GitHub repo (e.g., AgentLab sample repo)
+1. GitHub API client implemented using requests library with authentication support
+2. Optional GitHub Personal Access Token via environment variable `GITHUB_TOKEN` (5000 req/hr authenticated, 60 req/hr unauthenticated)
+3. Token validation on backend startup: log warning if `GITHUB_TOKEN` not set, recommend for production use
+4. Function to fetch repository tree recursively for specified folder path
+5. Filter files by supported extensions: .md, .csv, .yaml, .yml, .json, .txt
+6. GitHub rate limit detection: parse `X-RateLimit-Remaining` and `X-RateLimit-Limit` headers
+7. Exponential backoff retry logic when rate limit approached (< 5 remaining)
+8. Clear error messages when rate limit exceeded (show time until reset from `X-RateLimit-Reset` header, suggest adding token if unauthenticated)
+9. Unit tests with mocked GitHub API responses (both authenticated and unauthenticated modes)
+10. Integration test with real public GitHub repo (e.g., AgentLab sample repo)
+11. `.env.example` updated with `GITHUB_TOKEN=` (commented with instructions)
+12. Documentation: README section "GitHub API Rate Limits" with instructions to create Personal Access Token
+
+**Dev Notes:**
+- Use `Authorization: Bearer {token}` header when `GITHUB_TOKEN` is set
+- Unauthenticated: 60 requests/hour, Authenticated: 5000 requests/hour
+- Token scopes required: `public_repo` (for public repos only, no sensitive scopes needed for POC)
+- Log current rate limit on startup: "GitHub API: {remaining}/{limit} requests remaining"
 
 ---
 
@@ -73,14 +83,15 @@ Enable users to create Projects and configure ProjectDocs linked to GitHub repos
 **so that** I can access them without internet connectivity.
 
 **Acceptance Criteria:**
-1. Alembic migration creates `documents` table: id (UUID), project_doc_id (FK), file_path, file_name, file_type (enum: markdown, csv, yaml, json, txt), content (BLOB), file_size_bytes, github_commit_sha, created_at, updated_at
-2. Function to download file content from GitHub (raw content URL)
+1. Alembic migration creates `documents` table: id (UUID), project_doc_id (FK with ON DELETE CASCADE), file_path, file_name, file_type (enum: markdown, csv, yaml, json, txt), content (BLOB), file_size_bytes, github_commit_sha, created_at, updated_at
+2. Function to download file content from GitHub (raw content URL, uses GitHub token if available)
 3. Function to store file content in PostgreSQL BLOB storage
 4. Track GitHub commit SHA for each file (for future change detection)
 5. Progress tracking: log each file being processed
 6. Error handling: continue sync if individual file fails, log errors
 7. Unit tests for file download and storage logic
 8. Integration test: sync sample repo with 10+ files, verify all stored in database
+9. Integration test: delete ProjectDoc, verify all associated documents cascade deleted
 
 ---
 
@@ -120,11 +131,13 @@ Enable users to create Projects and configure ProjectDocs linked to GitHub repos
    - Green badge "✓ Up to date" if last_synced_at >= last_github_commit_date
    - Yellow badge "⚠ Needs update" if last_synced_at < last_github_commit_date
    - Gray badge "Not synced" if last_synced_at is null
+   - Red badge "⚠ Source unavailable" if GitHub API returns 404/403 when checking commit date
 3. Display last sync time in human-readable format ("2 hours ago", "1 day ago")
 4. "Sync" button on each ProjectDoc card triggers sync operation
 5. Button shows spinner and disables during sync operation
 6. Success/error toast notifications after sync completes
 7. UI refreshes sync status after successful sync
+8. Error tooltip for "Source unavailable" badge explains: "GitHub repository not accessible. Check URL or permissions."
 
 ---
 
