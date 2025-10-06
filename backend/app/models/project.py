@@ -1,16 +1,16 @@
 """Project model for organizing BMAD documentation."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
 if TYPE_CHECKING:
-    pass
+    from app.models.project_doc import ProjectDoc
 
 
 class Project(Base):
@@ -26,10 +26,10 @@ class Project(Base):
         DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
-    # Relationship (will be added in Story 2.2 when ProjectDoc model is created)
-    # project_docs: Mapped[List["ProjectDoc"]] = relationship(
-    #     "ProjectDoc", back_populates="project", cascade="all, delete-orphan"
-    # )
+    # Relationships
+    project_docs: Mapped[List["ProjectDoc"]] = relationship(
+        "ProjectDoc", back_populates="project", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         """String representation for debugging."""

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import health, hello
 from app.config import settings
-from app.routers import projects
+from app.routers import project_docs, projects
 
 app = FastAPI(
     title="BMADFlow API",
@@ -27,6 +27,7 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(hello.router, prefix="/api", tags=["hello"])
 app.include_router(projects.router)
+app.include_router(project_docs.router)
 
 
 @app.get("/")
