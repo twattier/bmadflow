@@ -4,8 +4,9 @@
 
 **Epic ID**: Epic 1
 **Epic Name**: Foundation & Core Infrastructure
-**Status**: Ready for Development
+**Status**: Stories Drafted - Ready for Implementation
 **Created**: 2025-10-06
+**Last Updated**: 2025-10-06
 **Priority**: Critical (Foundation)
 
 ## Epic Goal
@@ -48,32 +49,32 @@ Establishes technical foundation enabling rapid parallel development across team
 
 This epic contains **6 stories**:
 
-1. **[Story 1.1: Initialize Monorepo Structure](story-1-1-initialize-monorepo-structure.md)**
+1. **✅ [Story 1.1: Initialize Monorepo Structure](../stories/1.1.initialize-monorepo-structure.md)** - Draft
    - Create backend and frontend directories with package management
    - Configure code quality tools (Black, Ruff, ESLint, Prettier)
    - Create root README with setup instructions
 
-2. **[Story 1.2: Setup PostgreSQL with pgvector and pgAdmin](story-1-2-setup-postgresql-pgvector-pgadmin.md)**
+2. **✅ [Story 1.2: Setup PostgreSQL with pgvector and pgAdmin](../stories/1.2.setup-postgresql-pgvector-pgadmin.md)** - Draft
    - Create docker-compose.yml with PostgreSQL and pgAdmin services
    - Enable pgvector extension
    - Configure Docker volumes for data persistence
 
-3. **[Story 1.3: Initialize FastAPI Backend with Alembic Migrations](story-1-3-initialize-fastapi-backend-alembic.md)**
+3. **✅ [Story 1.3: Initialize FastAPI Backend with Alembic Migrations](../stories/1.3.initialize-fastapi-backend-alembic.md)** - Draft
    - Create FastAPI application with main.py entry point
    - Configure Alembic for database migrations
    - Implement health check endpoint `/api/health`
 
-4. **[Story 1.4: Initialize React Frontend with shadcn/ui Dashboard Template](story-1-4-initialize-react-frontend-shadcn.md)**
+4. **✅ [Story 1.4: Initialize React Frontend with shadcn/ui Dashboard Template](../stories/1.4.initialize-react-frontend-shadcn.md)** - Draft
    - Initialize React 18+ with TypeScript using Vite
    - Install shadcn/ui Dashboard template
    - Create "Hello BMADFlow" landing page
 
-5. **[Story 1.5: Create Docker Compose for Full Docker Deployment](story-1-5-docker-compose-full-deployment.md)**
+5. **✅ [Story 1.5: Create Docker Compose for Full Docker Deployment](../stories/1.5.docker-compose-full-deployment.md)** - Draft
    - Add frontend and backend services to docker-compose.yml
    - Configure service dependencies and health checks
    - Create Dockerfiles for frontend and backend
 
-6. **[Story 1.6: Implement "Hello BMADFlow" End-to-End Integration](story-1-6-hello-bmadflow-e2e-integration.md)**
+6. **✅ [Story 1.6: Implement "Hello BMADFlow" End-to-End Integration](../stories/1.6.hello-bmadflow-e2e-integration.md)** - Draft
    - Create backend endpoint `/api/hello`
    - Frontend fetches and displays API response
    - Playwright MCP test validates full stack
@@ -249,5 +250,31 @@ bmadflow/
 
 ---
 
-**Epic Status**: ✅ Ready for Story Development
-**Next Action**: Create Story 1.1 - Initialize Monorepo Structure
+## Story Drafting Summary
+
+**Story Drafting Completed**: 2025-10-06
+
+All 6 stories for Epic 1 have been drafted and are ready for implementation:
+
+| Story | File | Size | Status |
+|-------|------|------|--------|
+| 1.1 | [1.1.initialize-monorepo-structure.md](../stories/1.1.initialize-monorepo-structure.md) | 8.2K | ✅ Draft |
+| 1.2 | [1.2.setup-postgresql-pgvector-pgadmin.md](../stories/1.2.setup-postgresql-pgvector-pgadmin.md) | 8.4K | ✅ Draft |
+| 1.3 | [1.3.initialize-fastapi-backend-alembic.md](../stories/1.3.initialize-fastapi-backend-alembic.md) | 12K | ✅ Draft |
+| 1.4 | [1.4.initialize-react-frontend-shadcn.md](../stories/1.4.initialize-react-frontend-shadcn.md) | 13K | ✅ Draft |
+| 1.5 | [1.5.docker-compose-full-deployment.md](../stories/1.5.docker-compose-full-deployment.md) | 14K | ✅ Draft |
+| 1.6 | [1.6.hello-bmadflow-e2e-integration.md](../stories/1.6.hello-bmadflow-e2e-integration.md) | 16K | ✅ Draft |
+
+**Story Quality**:
+- All stories include clear acceptance criteria with checkboxes
+- Comprehensive Dev Notes extracted from architecture documentation
+- Source references: `[Source: architecture/filename.md#section]` format
+- Testing guidance for each story
+- Tasks/Subtasks breaking down implementation steps
+
+**Validation**: Story 1.1 validated with story-draft-checklist (9/10 clarity score, READY status)
+
+---
+
+**Epic Status**: ✅ Stories Drafted - Ready for Implementation
+**Next Action**: Begin Story 1.1 implementation with Dev Agent
