@@ -39,3 +39,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Process IDs (from start_local.sh)
+*.pid

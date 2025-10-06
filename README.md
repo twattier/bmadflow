@@ -57,6 +57,30 @@ PGADMIN_PORT=5050
 
 **⚠️ Important**: The `.env` file is gitignored. Never commit credentials to version control.
 
+## Quick Start with Startup Scripts
+
+Three convenience scripts are provided for easy service management:
+
+### 🐳 Docker Mode (Recommended for Quick Start)
+```bash
+./scripts/start_docker.sh
+```
+All services run in Docker containers. Automatically stops conflicts and builds fresh containers.
+
+### 💻 Local Development Mode
+```bash
+./scripts/start_local.sh
+```
+Frontend and backend run locally with hot reload. Database runs in Docker. Best for active development.
+
+### 🛑 Stop All Services
+```bash
+./scripts/stop_services.sh
+```
+Cleanly stops both Docker and local services.
+
+📖 **Detailed documentation**: See [scripts/STARTUP_SCRIPTS.md](scripts/STARTUP_SCRIPTS.md) for full guide including troubleshooting, port configuration, and workflow examples.
+
 ## Database Setup
 
 ### Start PostgreSQL and pgAdmin
@@ -141,6 +165,77 @@ npm install
 ```bash
 # Run linting
 npm run lint
+```
+
+## Quick Start - Full Docker
+
+**Prerequisites**:
+- Docker Desktop installed and running
+- Ollama running locally with `nomic-embed-text` model
+
+**Steps**:
+1. Clone repository and navigate to project directory
+2. Copy environment file: `cp .env.example .env`
+3. Start all services: `docker-compose up`
+4. Access frontend: http://localhost:3002 (port configured in `.env`)
+5. Access API docs: http://localhost:8001/docs (port configured in `.env`)
+6. Access pgAdmin: http://localhost:5050
+
+**Verify deployment**:
+```bash
+# Backend health check
+curl http://localhost:8001/api/health
+
+# Backend hello endpoint
+curl http://localhost:8001/api/hello
+
+# Frontend (should display "Hello BMADFlow")
+open http://localhost:3002
+```
+
+## Quick Start - Hybrid Mode
+
+**Prerequisites**:
+- Docker Desktop (for database)
+- Python 3.11+
+- Node.js 18+
+- Ollama running locally
+
+**Steps**:
+
+1. **Start database**: `docker-compose -f docker-compose.hybrid.yml up -d`
+
+2. **Start backend**:
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   alembic upgrade head
+   uvicorn app.main:app --reload --port 8001  # Use BACKEND_PORT from .env
+   ```
+
+3. **Start frontend** (new terminal):
+   ```bash
+   cd frontend
+   npm install
+   npm run dev  # Uses VITE_PORT=3002 from .env
+   ```
+
+4. **Access frontend**: http://localhost:3002 (port from `.env`)
+
+## Running Tests
+
+**E2E Tests** (Playwright):
+```bash
+cd frontend
+npm run test:e2e
+```
+
+**Backend Tests**:
+```bash
+cd backend
+pytest
 ```
 
 ## Documentation
