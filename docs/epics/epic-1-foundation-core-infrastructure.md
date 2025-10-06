@@ -4,7 +4,7 @@
 
 **Epic ID**: Epic 1
 **Epic Name**: Foundation & Core Infrastructure
-**Status**: In Progress - 3 Done, 0 In Progress (3/6 stories)
+**Status**: In Progress - 4 Done, 0 In Progress (4/6 stories)
 **Created**: 2025-10-06
 **Last Updated**: 2025-10-06
 **Priority**: Critical (Foundation)
@@ -66,10 +66,11 @@ This epic contains **6 stories**:
    - Implement health check endpoint `/api/health` with database connectivity validation
    - **QA Gate**: PASS (Quality Score: 100/100) - [Gate File](../qa/gates/1.3-initialize-fastapi-backend-alembic.yml)
 
-4. **✅ [Story 1.4: Initialize React Frontend with shadcn/ui Dashboard Template](../stories/1.4.initialize-react-frontend-shadcn.md)** - Draft
+4. **✅ [Story 1.4: Initialize React Frontend with shadcn/ui Dashboard Template](../stories/1.4.initialize-react-frontend-shadcn.md)** - **Done** ✅
    - Initialize React 18+ with TypeScript using Vite
    - Install shadcn/ui Dashboard template
    - Create "Hello BMADFlow" landing page
+   - **QA Gate**: PASS (Quality Score: 100/100) - [Gate File](../qa/gates/1.4-initialize-react-frontend-shadcn.yml)
 
 5. **✅ [Story 1.5: Create Docker Compose for Full Docker Deployment](../stories/1.5.docker-compose-full-deployment.md)** - Draft
    - Add frontend and backend services to docker-compose.yml
@@ -284,8 +285,10 @@ All 6 stories for Epic 1 have been drafted and are ready for implementation:
 - Story 1.2: QA applied 3 quality improvements (removed obsolete version, fixed .env.example port references, corrected README password docs)
 - Story 1.3: Dev agent delivered exceptional quality with modern async patterns, perfect Black/Ruff compliance
 - Story 1.3: QA applied 1 quality improvement (updated .env.example for consistency with backend config)
+- Story 1.4: Dev agent successfully initialized React 19.1, Vite 7.1, shadcn/ui with Tailwind CSS 3.4
+- Story 1.4: QA Gate **PASS** (100/100) - Excellent implementation, all 5 ACs met, no refactoring needed
 
 ---
 
-**Epic Status**: ✅ In Progress - 3 Done (3/6 stories complete, 50% progress)
-**Next Action**: Validate and begin Story 1.4 (Initialize React Frontend with shadcn/ui Dashboard Template)
+**Epic Status**: ✅ In Progress - 4 Done (4/6 stories complete, 67% progress)
+**Next Action**: Validate and begin Story 1.5 (Create Docker Compose for Full Docker Deployment)
