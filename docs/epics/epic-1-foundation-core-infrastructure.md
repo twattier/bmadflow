@@ -4,7 +4,7 @@
 
 **Epic ID**: Epic 1
 **Epic Name**: Foundation & Core Infrastructure
-**Status**: In Progress - 4 Done, 0 In Progress (4/6 stories)
+**Status**: In Progress - 5 Done, 0 In Progress (5/6 stories)
 **Created**: 2025-10-06
 **Last Updated**: 2025-10-06
 **Priority**: Critical (Foundation)
@@ -72,10 +72,11 @@ This epic contains **6 stories**:
    - Create "Hello BMADFlow" landing page
    - **QA Gate**: PASS (Quality Score: 100/100) - [Gate File](../qa/gates/1.4-initialize-react-frontend-shadcn.yml)
 
-5. **✅ [Story 1.5: Create Docker Compose for Full Docker Deployment](../stories/1.5.docker-compose-full-deployment.md)** - Draft
+5. **✅ [Story 1.5: Create Docker Compose for Full Docker Deployment](../stories/1.5.docker-compose-full-deployment.md)** - **Done** ✅
    - Add frontend and backend services to docker-compose.yml
    - Configure service dependencies and health checks
    - Create Dockerfiles for frontend and backend
+   - **QA Gate**: PASS (Quality Score: 95/100) - [Gate File](../qa/gates/1.5-docker-compose-full-deployment.yml)
 
 6. **✅ [Story 1.6: Implement "Hello BMADFlow" End-to-End Integration](../stories/1.6.hello-bmadflow-e2e-integration.md)** - Draft
    - Create backend endpoint `/api/hello`

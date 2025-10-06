@@ -1,4 +1,5 @@
 services:
+  # PostgreSQL with pgvector (from Story 1.2)
   db:
     image: ankane/pgvector:latest
     container_name: bmadflow-db
@@ -18,11 +19,58 @@ services:
     networks:
       - bmadflow-network
 
+  # Backend (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bmadflow-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-bmadflow}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-bmadflow}
+      OLLAMA_ENDPOINT_URL: ${OLLAMA_ENDPOINT_URL:-http://host.docker.internal:11434}
+      BACKEND_PORT: ${BACKEND_PORT:-8000}
+      CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+    ports:
+      - "${BACKEND_PORT:-8000}:${BACKEND_PORT:-8000}"
+    volumes:
+      - ./backend:/app  # Hot reload support
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port ${BACKEND_PORT:-8000} --reload"
+    networks:
+      - bmadflow-network
+
+  # Frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bmadflow-frontend
+    environment:
+      VITE_BACKEND_URL: http://localhost:${BACKEND_PORT:-8000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
+    volumes:
+      - ./frontend:/app  # Hot reload support
+      - /app/node_modules  # Avoid overwriting node_modules
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0 --port ${FRONTEND_PORT:-3000}
+    networks:
+      - bmadflow-network
+
+  # pgAdmin (Database Admin UI) (from Story 1.2)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: bmadflow-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_EMAIL: admin@bmadflow.local
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
