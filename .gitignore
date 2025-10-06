@@ -25,10 +25,10 @@ coverage/
 *.swo
 
 # Claude Code local settings
-.claude/
+#.claude/
 
 # AI working directory
-.ai/
+#.ai/
 
 # Docker
 volumes/
