@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('debug page content', async ({ page }) => {
   const TEST_PROJECT_ID = '49d4acff-e89d-4149-ae7f-331d39ccb75f';

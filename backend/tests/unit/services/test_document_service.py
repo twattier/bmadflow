@@ -172,3 +172,42 @@ async def test_build_file_tree_deep_nesting(document_service, mock_document_repo
     assert len(backend.children) == 2
     assert backend.children[0].name == "api.md"
     assert backend.children[1].name == "services.md"
+
+
+@pytest.mark.asyncio
+async def test_get_by_id_returns_document_when_found(document_service, mock_document_repo):
+    """Test get_by_id returns document when found."""
+    # Arrange
+    document_id = uuid.uuid4()
+    expected_doc = Mock(spec=Document)
+    expected_doc.id = document_id
+    expected_doc.project_doc_id = uuid.uuid4()
+    expected_doc.file_path = "docs/README.md"
+    expected_doc.file_type = "md"
+    expected_doc.file_size = 1234
+    expected_doc.content = "# Test Document"
+
+    mock_document_repo.get_by_id = AsyncMock(return_value=expected_doc)
+
+    # Act
+    result = await document_service.get_by_id(document_id)
+
+    # Assert
+    assert result == expected_doc
+    assert result.content == "# Test Document"
+    mock_document_repo.get_by_id.assert_called_once_with(document_id)
+
+
+@pytest.mark.asyncio
+async def test_get_by_id_returns_none_when_not_found(document_service, mock_document_repo):
+    """Test get_by_id returns None when document not found."""
+    # Arrange
+    document_id = uuid.uuid4()
+    mock_document_repo.get_by_id = AsyncMock(return_value=None)
+
+    # Act
+    result = await document_service.get_by_id(document_id)
+
+    # Assert
+    assert result is None
+    mock_document_repo.get_by_id.assert_called_once_with(document_id)

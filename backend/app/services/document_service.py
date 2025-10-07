@@ -81,6 +81,17 @@ class DocumentService:
 
         return stored_docs
 
+    async def get_by_id(self, document_id: UUID) -> Document | None:
+        """Get document by ID.
+
+        Args:
+            document_id: Document UUID
+
+        Returns:
+            Document instance or None if not found
+        """
+        return await self.document_repo.get_by_id(document_id)
+
     async def build_file_tree(self, project_id: UUID) -> FileTreeResponse:
         """Build hierarchical file tree from documents.
 

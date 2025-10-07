@@ -30,6 +30,7 @@ class DocumentResponse(DocumentBase):
 
     id: uuid.UUID
     project_doc_id: uuid.UUID
+    content: str
     created_at: datetime
     updated_at: datetime
 

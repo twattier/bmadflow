@@ -1,5 +1,8 @@
 import type { FileNode } from '@/api/types/document';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDocument } from '@/api/hooks/useDocument';
+import { MarkdownRenderer } from './MarkdownRenderer';
+import { TableOfContents } from './TableOfContents';
 
 interface ContentViewerProps {
   file: FileNode | null;
@@ -7,6 +10,8 @@ interface ContentViewerProps {
 }
 
 export function ContentViewer({ file, className }: ContentViewerProps) {
+  const { data: document, isLoading, error } = useDocument(file?.id || null);
+
   if (!file) {
     return (
       <Card className={className}>
@@ -23,7 +28,22 @@ export function ContentViewer({ file, className }: ContentViewerProps) {
         <CardTitle>{file.name}</CardTitle>
       </CardHeader>
       <CardContent className="overflow-auto">
-        <p className="text-muted-foreground">Content viewer will be implemented in Story 3.3</p>
+        {isLoading && <p className="text-muted-foreground">Loading...</p>}
+
+        {error && <p className="text-destructive">Error loading document: {error.message}</p>}
+
+        {document && file.file_type === 'md' && (
+          <div>
+            <TableOfContents content={document.content} />
+            <MarkdownRenderer content={document.content} className="mt-4" />
+          </div>
+        )}
+
+        {document && file.file_type !== 'md' && (
+          <p className="text-muted-foreground">
+            File viewer for {file.file_type} files coming soon
+          </p>
+        )}
       </CardContent>
     </Card>
   );

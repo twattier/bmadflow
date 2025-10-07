@@ -12,3 +12,15 @@ export interface FileTreeResponse {
   project_id: string;
   tree: FileNode[];
 }
+
+export interface Document {
+  id: string;
+  project_doc_id: string;
+  file_path: string;
+  file_type: string;
+  file_size: number;
+  content: string;
+  doc_metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
