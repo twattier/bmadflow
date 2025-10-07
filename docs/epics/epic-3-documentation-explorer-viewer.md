@@ -4,6 +4,70 @@
 
 Provide a visual file tree interface for browsing synced documentation with intelligent content rendering based on file type (markdown with TOC, CSV tables, syntax highlighting, Mermaid diagrams, and cross-document navigation).
 
+## Pre-Development Checklist
+
+**Complete these tasks before starting Story 3.1:**
+
+### Critical Dependencies
+- [ ] **Install Frontend Libraries**
+  ```bash
+  cd frontend
+  npm install react-arborist react-markdown remark-gfm rehype-raw
+  npm install react-syntax-highlighter @types/react-syntax-highlighter
+  npm install mermaid react-mermaid2
+  npm install papaparse @types/papaparse
+  ```
+- [ ] **Verify Ollama Setup**
+  ```bash
+  ollama list | grep nomic-embed-text
+  ```
+  Expected: Model should be listed. If not, run: `ollama pull nomic-embed-text`
+
+- [ ] **Review Architecture Documentation**
+  - Read [docs/architecture/api-specification.md](../architecture/api-specification.md)
+  - Understand existing endpoints (Projects, ProjectDocs, Documents)
+  - Review database schema for Documents table
+
+### Validation
+- [ ] Review [Epic 3 Validation Report](../validation/epic-3-validation-report.md)
+- [ ] Confirm Epic 2 complete (Documents table populated with file_path data)
+
+---
+
+## Story Sequencing & Dependencies
+
+### Critical Path (Sequential - Cannot Parallelize)
+```
+Story 3.1 (File Tree API) ← START HERE
+    ↓
+Story 3.2 (File Tree UI) ← Depends on 3.1 API
+    ↓
+Story 3.3 (Markdown Renderer) ← Depends on 3.2 viewer pane
+    ↓
+Story 3.6 (Cross-Doc Navigation) ← Depends on 3.3 functional renderer
+```
+
+### Parallelizable Stories (After Story 3.3)
+Once Story 3.3 is complete, these can be developed in parallel:
+- **Story 3.4** (Mermaid Diagrams) - Extends markdown renderer
+- **Story 3.5** (CSV Viewer) - Independent file type handler
+- **Story 3.7** (YAML/JSON/TXT) - Independent file type handler
+
+### Dependency Summary
+| Story | Depends On | Can Start After | Estimated Days |
+|-------|------------|-----------------|----------------|
+| 3.1 | Epic 2 complete | Immediately (after checklist) | 1-2 days |
+| 3.2 | Story 3.1 | Day 2-3 | 1-2 days |
+| 3.3 | Story 3.2 | Day 3-4 | 2 days |
+| 3.4 | Story 3.3 | Day 5-6 | 0.5 day |
+| 3.5 | Story 3.3 | Day 5-6 (parallel with 3.4) | 0.5 day |
+| 3.7 | Story 3.3 | Day 5-6 (parallel with 3.4, 3.5) | 0.5 day |
+| 3.6 | Story 3.3 | Day 6-7 | 1 day |
+
+**Total Estimated Duration**: 7-9 days
+
+---
+
 ## Stories
 
 ### Story 3.1: Build File Tree API for Document Hierarchy
