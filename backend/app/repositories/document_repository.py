@@ -6,8 +6,10 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.models.document import Document
+from app.models.project_doc import ProjectDoc
 from app.schemas.document import DocumentCreate
 
 
@@ -153,3 +155,21 @@ class DocumentRepository:
 
         await self.db.commit()
         return count
+
+    async def list_by_project_id(self, project_id: UUID) -> List[Document]:
+        """Fetch all documents for a project (across all ProjectDocs).
+
+        Args:
+            project_id: Project UUID
+
+        Returns:
+            List of documents for the project
+        """
+        query = (
+            select(Document)
+            .join(ProjectDoc, Document.project_doc_id == ProjectDoc.id)
+            .where(ProjectDoc.project_id == project_id)
+            .options(joinedload(Document.project_doc))
+        )
+        result = await self.db.execute(query)
+        return list(result.scalars().all())

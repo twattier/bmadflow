@@ -70,20 +70,31 @@ Once Story 3.3 is complete, these can be developed in parallel:
 
 ## Stories
 
-### Story 3.1: Build File Tree API for Document Hierarchy
+### Story 3.1: Build File Tree API for Document Hierarchy ✅ DONE
+
+**Status:** Done (Completed 2025-10-07)
+**Story File:** [3.1-build-file-tree-api-for-document-hierarchy.md](../stories/3.1-build-file-tree-api-for-document-hierarchy.md)
+**QA Gate:** PASS (100/100) - [Gate File](../qa/gates/3.1-build-file-tree-api-for-document-hierarchy.yml)
 
 **As a** developer,
 **I want** to retrieve a hierarchical file tree structure from synced documents,
 **so that** I can display it in the UI.
 
 **Acceptance Criteria:**
-1. REST API endpoint `GET /api/projects/{id}/file-tree` returns hierarchical JSON structure
-2. File tree structure includes: folders (nested), files (with metadata: id, name, path, type, size)
-3. Tree built from documents table file_path field, parsing directory structure
-4. Files grouped by ProjectDoc if multiple ProjectDocs exist in Project
-5. Tree sorted: folders first (alphabetical), then files (alphabetical)
-6. Unit tests for tree-building logic
-7. Integration test: sync repo with nested folders, verify correct tree structure returned
+1. ✅ REST API endpoint `GET /api/projects/{id}/file-tree` returns hierarchical JSON structure
+2. ✅ File tree structure includes: folders (nested), files (with metadata: id, name, path, type, size)
+3. ✅ Tree built from documents table file_path field, parsing directory structure
+4. ✅ Files grouped by ProjectDoc if multiple ProjectDocs exist in Project
+5. ✅ Tree sorted: folders first (alphabetical), then files (alphabetical)
+6. ✅ Unit tests for tree-building logic (5 tests passing)
+7. ✅ Integration test: sync repo with nested folders, verify correct tree structure returned
+
+**Implementation Summary:**
+- Created FileTreeNode & FileTreeResponse Pydantic schemas with recursive structure
+- Implemented efficient O(n) tree-building algorithm in DocumentService
+- Added GET /api/projects/{id}/file-tree endpoint with proper error handling
+- Comprehensive test coverage: 5 unit tests + 3 integration tests
+- Production verified: 99 documents with 8 hierarchical levels
 
 ---
 

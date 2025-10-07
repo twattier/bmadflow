@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -32,3 +32,22 @@ class DocumentResponse(DocumentBase):
     project_doc_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
+
+
+class FileTreeNode(BaseModel):
+    """File tree node representing a file or folder."""
+
+    type: Literal["file", "folder"]
+    name: str
+    path: str
+    children: Optional[List["FileTreeNode"]] = None
+    id: Optional[uuid.UUID] = None
+    file_type: Optional[str] = None
+    size: Optional[int] = None
+
+
+class FileTreeResponse(BaseModel):
+    """Response model for file tree."""
+
+    project_id: uuid.UUID
+    tree: List[FileTreeNode]

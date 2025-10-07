@@ -6,7 +6,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import health, hello
+from app.api.v1 import documents, health, hello
 from app.config import settings
 from app.routers import project_docs, projects
 
@@ -31,6 +31,7 @@ app.add_middleware(
 # Mount API routes
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(hello.router, prefix="/api", tags=["hello"])
+app.include_router(documents.router, prefix="/api", tags=["documents"])
 app.include_router(projects.router)
 app.include_router(project_docs.router)
 
