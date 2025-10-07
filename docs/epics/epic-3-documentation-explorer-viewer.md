@@ -98,22 +98,34 @@ Once Story 3.3 is complete, these can be developed in parallel:
 
 ---
 
-### Story 3.2: Implement File Tree Navigation UI
+### Story 3.2: Implement File Tree Navigation UI ✅ DONE
+
+**Status:** Done (Completed 2025-10-07)
+**Story File:** [3.2-implement-file-tree-navigation-ui.md](../stories/3.2-implement-file-tree-navigation-ui.md)
+**QA Gate:** PASS (95/100) - [Gate File](../qa/gates/3.2-implement-file-tree-navigation-ui.yml)
 
 **As a** user,
 **I want** to see a file tree navigation for browsing documentation,
 **so that** I can find and select files to view.
 
 **Acceptance Criteria:**
-1. Explorer page displays split view: file tree (25% width) + content viewer (75% width)
-2. File tree uses react-arborist library for rendering
-3. Folders expandable/collapsible with visual indicators (chevron icons)
-4. File icons differentiate file types (Lucide icons: FileText for .md, Table for .csv, FileCode for .yaml/.json)
-5. Clicking file loads content in viewer pane
-6. Selected file highlighted in tree
-7. Tree scrollable independently of content viewer
-8. Empty state: "No documents synced. Go to Overview and sync a ProjectDoc to get started."
-9. Loading state shown while fetching file tree
+1. ✅ Explorer page displays split view: file tree (25% width) + content viewer (75% width)
+2. ✅ File tree uses react-arborist library for rendering
+3. ✅ Folders expandable/collapsible with visual indicators (chevron icons)
+4. ✅ File icons differentiate file types (Lucide icons: FileText for .md, Table for .csv, FileCode for .yaml/.json)
+5. ✅ Clicking file loads content in viewer pane
+6. ✅ Selected file highlighted in tree
+7. ✅ Tree scrollable independently of content viewer
+8. ✅ Empty state: "No documents synced. Go to Overview and sync a ProjectDoc to get started."
+9. ✅ Loading state shown while fetching file tree
+
+**Implementation Summary:**
+- Created DocumentationExplorer page with split view layout (25%/75%)
+- Implemented FileTreePanel with react-arborist for virtual scrolling
+- Added comprehensive state handling (loading, empty, error, success)
+- Fixed 3 runtime issues during testing (TypeScript imports, idAccessor, UX)
+- Test coverage: 6 unit tests + 3 E2E scenarios (all passing)
+- UX improvements: first node auto-expands, entire row clickable for folders
 
 ---
 

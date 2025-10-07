@@ -1,5 +1,5 @@
 import { Home, FileText, MessageSquare, Settings, FolderTree } from 'lucide-react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';

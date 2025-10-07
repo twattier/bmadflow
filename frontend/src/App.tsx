@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Dashboard } from '@/pages/Dashboard';
 import { Projects } from '@/pages/Projects';
 import { ProjectOverview } from '@/pages/ProjectOverview';
+import { DocumentationExplorer } from '@/pages/DocumentationExplorer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:projectId" element={<ProjectOverview />} />
+            <Route path="/projects/:projectId/explorer" element={<DocumentationExplorer />} />
           </Routes>
         </AppShell>
         <Toaster />
