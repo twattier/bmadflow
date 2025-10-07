@@ -168,12 +168,12 @@ Enable users to create Projects and configure ProjectDocs linked to GitHub repos
 | 2.1: Create Project Database Schema and API | ✅ Done | 2025-10-07 |
 | 2.2: Create ProjectDoc Database Schema and API | ✅ Done | 2025-10-07 |
 | 2.3: Implement GitHub API Integration | ✅ Done | 2025-10-07 |
-| 2.4: Implement Documentation File Download and Storage | 🔲 Not Started | - |
+| 2.4: Implement Documentation File Download and Storage | ✅ Done | 2025-10-07 |
 | 2.5: Build Sync Orchestration and Status Tracking | 🔲 Not Started | - |
 | 2.6: Build ProjectDoc Configuration UI | 🔲 Not Started | - |
 | 2.7: Build Projects List and Project Overview UI | 🔲 Not Started | - |
 
-**Epic Progress**: 3/7 stories complete (43%)
+**Epic Progress**: 4/7 stories complete (57%)
 
 ---
 
@@ -182,10 +182,11 @@ Enable users to create Projects and configure ProjectDocs linked to GitHub repos
 - [ ] All 7 stories completed with acceptance criteria met
 - [x] Users can create Projects and ProjectDocs via API (Stories 2.1, 2.2)
 - [ ] Users can create Projects and ProjectDocs via UI (Story 2.7)
-- [ ] GitHub sync functionality working end-to-end (Stories 2.3, 2.4, 2.5) - 33% complete (Story 2.3 ✅)
+- [ ] GitHub sync functionality working end-to-end (Stories 2.3, 2.4, 2.5) - 67% complete (Stories 2.3 ✅, 2.4 ✅)
 - [ ] Sync status indicators accurate and real-time (Stories 2.5, 2.6)
 - [x] All API endpoints documented in OpenAPI/Swagger (Stories 2.1, 2.2)
-- [x] Unit and integration tests passing (Stories 2.1, 2.2, 2.3)
+- [x] Unit and integration tests passing (Stories 2.1, 2.2, 2.3, 2.4)
 - [x] GitHub API integration with rate limiting (Story 2.3)
+- [x] Documentation file download and storage (Story 2.4)
 - [ ] UI follows shadcn/ui design system (Stories 2.6, 2.7)
 - [ ] Empty states provide helpful guidance (Story 2.7)

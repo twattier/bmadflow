@@ -291,3 +291,121 @@ async def test_network_error_raises_github_api_error():
 
     assert exc_info.value.status_code == 500
     assert "Network error" in exc_info.value.message
+
+
+# Tests for download_file_content (Story 2.4)
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_download_file_content_success():
+    """Test successful file content download."""
+    # Arrange
+    raw_route = respx.get("https://raw.githubusercontent.com/user/repo/main/docs/prd.md").mock(
+        return_value=httpx.Response(
+            200,
+            text="# Product Requirements Document\n\nThis is the PRD content.",
+            headers={
+                "X-RateLimit-Remaining": "4999",
+                "X-RateLimit-Limit": "5000",
+                "X-RateLimit-Reset": str(int(datetime.now().timestamp()) + 3600),
+            },
+        )
+    )
+
+    api_route = respx.get("https://api.github.com/repos/user/repo/contents/docs/prd.md").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "name": "prd.md",
+                "path": "docs/prd.md",
+                "sha": "abc123def456",
+                "size": 1024,
+                "type": "file"
+            },
+            headers={
+                "X-RateLimit-Remaining": "4998",
+                "X-RateLimit-Limit": "5000",
+                "X-RateLimit-Reset": str(int(datetime.now().timestamp()) + 3600),
+            },
+        )
+    )
+
+    service = GitHubService()
+
+    # Act
+    content, commit_sha = await service.download_file_content(
+        "https://github.com/user/repo", "docs/prd.md"
+    )
+
+    # Assert
+    assert raw_route.called
+    assert api_route.called
+    assert content == "# Product Requirements Document\n\nThis is the PRD content."
+    assert commit_sha == "abc123def456"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_download_file_content_404():
+    """Test 404 error when file not found."""
+    # Arrange
+    respx.get("https://raw.githubusercontent.com/user/repo/main/missing.md").mock(
+        return_value=httpx.Response(404, text="404: Not Found")
+    )
+
+    service = GitHubService()
+
+    # Act & Assert
+    with pytest.raises(GitHubAPIError) as exc_info:
+        await service.download_file_content("https://github.com/user/repo", "missing.md")
+
+    assert exc_info.value.status_code == 404
+    assert "File not found" in exc_info.value.message
+    assert "missing.md" in exc_info.value.message
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_download_file_content_rate_limit():
+    """Test rate limit exceeded during download."""
+    # Arrange
+    reset_time = int(datetime.now().timestamp()) + 3600
+    respx.get("https://raw.githubusercontent.com/user/repo/main/docs/prd.md").mock(
+        return_value=httpx.Response(
+            403,
+            json={"message": "API rate limit exceeded"},
+            headers={
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Limit": "60",
+                "X-RateLimit-Reset": str(reset_time),
+            },
+        )
+    )
+
+    service = GitHubService()
+
+    # Act & Assert
+    with pytest.raises(RateLimitExceededError) as exc_info:
+        await service.download_file_content("https://github.com/user/repo", "docs/prd.md")
+
+    assert exc_info.value.reset_time == reset_time
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_download_file_content_network_error():
+    """Test network error during download."""
+    # Arrange
+    respx.get("https://raw.githubusercontent.com/user/repo/main/docs/prd.md").mock(
+        side_effect=httpx.RequestError("Connection timeout")
+    )
+
+    service = GitHubService()
+
+    # Act & Assert
+    with pytest.raises(GitHubAPIError) as exc_info:
+        await service.download_file_content("https://github.com/user/repo", "docs/prd.md")
+
+    assert exc_info.value.status_code == 500
+    assert "Network error" in exc_info.value.message

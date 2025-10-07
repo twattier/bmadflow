@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
+    from app.models.document import Document
     from app.models.project import Project
 
 
@@ -48,13 +49,11 @@ class ProjectDoc(Base):
 
     # Relationships
     project: Mapped["Project"] = relationship("Project", back_populates="project_docs")
-
-    # Relationship to Document (Story 2.4 - comment out for now)
-    # documents: Mapped[List["Document"]] = relationship(
-    #     "Document",
-    #     back_populates="project_doc",
-    #     cascade="all, delete-orphan"
-    # )
+    documents: Mapped[List["Document"]] = relationship(
+        "Document",
+        back_populates="project_doc",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         """Return string representation of ProjectDoc."""

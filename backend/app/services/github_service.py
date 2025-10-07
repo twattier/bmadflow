@@ -4,7 +4,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 import httpx
@@ -119,6 +119,65 @@ class GitHubService:
         )
 
         return files
+
+    async def download_file_content(self, github_url: str, file_path: str) -> Tuple[str, str]:
+        """
+        Download file content from GitHub.
+
+        Args:
+            github_url: GitHub repository URL
+            file_path: Relative file path within repository
+
+        Returns:
+            Tuple of (file_content, commit_sha)
+
+        Raises:
+            GitHubAPIError: If download fails
+            RateLimitExceededError: If rate limit exceeded
+        """
+        owner, repo = self._parse_github_url(github_url)
+
+        # Construct raw content URL
+        raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/{file_path}"
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(raw_url, headers=self.headers, timeout=30.0)
+
+                # Handle 404 errors gracefully
+                if response.status_code == 404:
+                    raise GitHubAPIError(f"File not found: {file_path} in {owner}/{repo}", 404)
+
+                # Raise HTTP errors for other issues
+                response.raise_for_status()
+
+                # Check rate limits after confirming success
+                await self._check_rate_limit(response)
+
+                # Get commit SHA from GitHub API (using file info endpoint)
+                file_url = f"{self.base_url}/repos/{owner}/{repo}/contents/{file_path}"
+                file_response = await client.get(file_url, headers=self.headers, timeout=30.0)
+                file_response.raise_for_status()
+                file_data = file_response.json()
+                commit_sha = file_data.get("sha", "")
+
+                content = response.text
+                logger.debug(f"Downloaded {file_path} from {owner}/{repo} ({len(content)} bytes)")
+
+                return content, commit_sha
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 403:
+                # Rate limit exceeded
+                reset_time = int(e.response.headers.get("X-RateLimit-Reset", 0))
+                raise RateLimitExceededError(reset_time)
+            elif e.response.status_code == 404:
+                raise GitHubAPIError(f"File not found: {file_path} in {owner}/{repo}", 404)
+            else:
+                raise GitHubAPIError(str(e), e.response.status_code)
+        except httpx.RequestError as e:
+            logger.error(f"GitHub download request failed: {e}")
+            raise GitHubAPIError(f"Network error: {e}", 500)
 
     async def _check_rate_limit(self, response: httpx.Response) -> None:
         """
