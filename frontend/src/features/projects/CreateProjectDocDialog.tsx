@@ -107,9 +107,7 @@ export function CreateProjectDocDialog({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add Documentation Source</DialogTitle>
-          <DialogDescription>
-            Add a GitHub repository to sync documentation from.
-          </DialogDescription>
+          <DialogDescription>Add a GitHub repository to sync documentation from.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
@@ -145,17 +143,13 @@ export function CreateProjectDocDialog({
                 value={githubUrl}
                 onChange={(e) => {
                   setGithubUrl(e.target.value);
-                  if (errors.githubUrl)
-                    setErrors({ ...errors, githubUrl: undefined });
+                  if (errors.githubUrl) setErrors({ ...errors, githubUrl: undefined });
                 }}
                 placeholder="https://github.com/owner/repo"
                 data-testid="github-url-input"
               />
               {errors.githubUrl && (
-                <p
-                  className="text-sm text-destructive"
-                  data-testid="github-url-error"
-                >
+                <p className="text-sm text-destructive" data-testid="github-url-error">
                   {errors.githubUrl}
                 </p>
               )}
@@ -172,9 +166,7 @@ export function CreateProjectDocDialog({
                 placeholder="e.g., docs/ or docs/api/"
                 data-testid="github-folder-path-input"
               />
-              <p className="text-xs text-muted-foreground">
-                Leave empty to sync entire repository
-              </p>
+              <p className="text-xs text-muted-foreground">Leave empty to sync entire repository</p>
             </div>
 
             <div className="grid gap-2">

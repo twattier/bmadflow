@@ -86,7 +86,6 @@ export function ProjectDocCard({ projectDoc }: ProjectDocCardProps) {
       pollIntervalRef.current = setInterval(() => {
         queryClient.invalidateQueries({ queryKey: ['project-docs'] });
       }, 2000);
-
     } catch {
       setIsSyncing(false);
       syncStartTimeRef.current = null;

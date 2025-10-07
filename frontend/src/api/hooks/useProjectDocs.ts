@@ -1,10 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import { useToast } from '@/hooks/use-toast';
-import type {
-  ProjectDocResponse,
-  ProjectDocCreateRequest,
-} from '../types/projectDoc';
+import type { ProjectDocResponse, ProjectDocCreateRequest } from '../types/projectDoc';
 
 export function useProjectDocs(projectId: string) {
   return useQuery<ProjectDocResponse[]>({
@@ -40,7 +37,8 @@ export function useCreateProjectDoc(projectId: string) {
       let errorMessage = 'Failed to create ProjectDoc';
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: { detail?: string; message?: string } } };
-        errorMessage = axiosError.response?.data?.detail || axiosError.response?.data?.message || errorMessage;
+        errorMessage =
+          axiosError.response?.data?.detail || axiosError.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -65,7 +63,8 @@ export function useSyncProjectDoc() {
     onSuccess: () => {
       toast({
         title: 'Sync started',
-        description: 'Documentation is being synced in the background. This may take a few moments.',
+        description:
+          'Documentation is being synced in the background. This may take a few moments.',
       });
       // Invalidate queries to trigger refetch - this will update the sync status
       queryClient.invalidateQueries({ queryKey: ['project-docs'] });
@@ -79,7 +78,8 @@ export function useSyncProjectDoc() {
       let errorMessage = 'Failed to sync documentation';
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: { detail?: string; message?: string } } };
-        errorMessage = axiosError.response?.data?.detail || axiosError.response?.data?.message || errorMessage;
+        errorMessage =
+          axiosError.response?.data?.detail || axiosError.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
