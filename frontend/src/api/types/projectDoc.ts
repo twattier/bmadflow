@@ -17,3 +17,10 @@ export interface SyncStatusResponse {
   last_synced_at: string | null;
   last_github_commit_date: string | null;
 }
+
+export interface ProjectDocCreateRequest {
+  name: string;
+  description?: string;
+  github_url: string;
+  github_folder_path?: string;
+}

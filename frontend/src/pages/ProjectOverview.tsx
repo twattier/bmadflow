@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProject } from '@/api/hooks/useProjects';
 import { useProjectDocs } from '@/api/hooks/useProjectDocs';
 import { ProjectDocCard } from '@/features/projects/ProjectDocCard';
+import { CreateProjectDocDialog } from '@/features/projects/CreateProjectDocDialog';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,7 @@ import { Plus } from 'lucide-react';
 
 export function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(projectId!);
 
@@ -35,7 +38,7 @@ export function ProjectOverview() {
 
       <div className="mb-4 flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Documentation Sources</h2>
-        <Button variant="outline" disabled>
+        <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add ProjectDoc
         </Button>
@@ -50,10 +53,16 @@ export function ProjectOverview() {
       ) : (
         <div className="text-center p-8 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">
-            No documentation sources yet. Add one to get started.
+            No documentation sources configured. Add a ProjectDoc to sync documentation from GitHub.
           </p>
         </div>
       )}
+
+      <CreateProjectDocDialog
+        projectId={projectId!}
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </div>
   );
 }

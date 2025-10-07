@@ -39,9 +39,6 @@ export function Dashboard() {
         <p className="text-muted-foreground mt-2">
           Welcome to BMADFlow - Your Documentation Hub for BMAD Method Projects
         </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Server timestamp: {helloData?.timestamp}
-        </p>
       </div>
 
       <Card>
