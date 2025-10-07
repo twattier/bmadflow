@@ -136,15 +136,41 @@ fi
 echo ""
 echo -e "${YELLOW}Setting up backend environment...${NC}"
 cd ../backend
-if [ ! -d ".venv" ]; then
-    python3 -m venv .venv
-    echo -e "${GREEN}✓ Python virtual environment created${NC}"
+
+# Check if venv exists and is valid
+if [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
+    echo -e "${GREEN}✓ Using existing Python virtual environment${NC}"
+    source .venv/bin/activate
+else
+    echo -e "${YELLOW}Creating Python virtual environment...${NC}"
+    if ! python3 -m venv .venv 2>/dev/null; then
+        echo -e "${RED}✗ Failed to create virtual environment${NC}"
+        echo -e "${YELLOW}Installing python3-venv package...${NC}"
+        echo "Please run: sudo apt install python3-venv"
+        echo -e "${YELLOW}Attempting to use system Python instead...${NC}"
+        # Try using system Python without venv
+        if [ -f "requirements.txt" ]; then
+            pip3 install --user -q -r requirements.txt || {
+                echo -e "${RED}✗ Failed to install dependencies${NC}"
+                exit 1
+            }
+        fi
+    else
+        echo -e "${GREEN}✓ Python virtual environment created${NC}"
+        source .venv/bin/activate
+        pip install -q --upgrade pip
+        pip install -q -r requirements.txt
+    fi
 fi
 
-source .venv/bin/activate
-pip install -q --upgrade pip
-pip install -q -r requirements.txt
-echo -e "${GREEN}✓ Backend dependencies installed${NC}"
+# If venv activated successfully, install dependencies
+if [ -n "$VIRTUAL_ENV" ]; then
+    pip install -q --upgrade pip
+    pip install -q -r requirements.txt
+    echo -e "${GREEN}✓ Backend dependencies installed in venv${NC}"
+else
+    echo -e "${GREEN}✓ Backend dependencies installed (system Python)${NC}"
+fi
 
 # Run database migrations
 echo ""
@@ -156,7 +182,14 @@ echo -e "${GREEN}✓ Database migrations complete${NC}"
 echo ""
 echo -e "${YELLOW}Starting backend server...${NC}"
 cd ..
-nohup bash -c "cd backend && source .venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload" > backend.log 2>&1 &
+
+# Determine which Python command to use
+if [ -f "backend/.venv/bin/activate" ]; then
+    nohup bash -c "cd backend && source .venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload" > backend.log 2>&1 &
+else
+    nohup bash -c "cd backend && python3 -m uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload" > backend.log 2>&1 &
+fi
+
 BACKEND_PID=$!
 echo $BACKEND_PID > .backend.pid
 echo -e "${GREEN}✓ Backend started (PID: $BACKEND_PID, logs: backend.log)${NC}"

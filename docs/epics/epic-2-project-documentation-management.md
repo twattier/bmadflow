@@ -170,24 +170,26 @@ Enable users to create Projects and configure ProjectDocs linked to GitHub repos
 | 2.3: Implement GitHub API Integration | ✅ Done | 2025-10-07 |
 | 2.4: Implement Documentation File Download and Storage | ✅ Done | 2025-10-07 |
 | 2.5: Build Sync Orchestration and Status Tracking | ✅ Done | 2025-10-07 |
-| 2.6: Build ProjectDoc Configuration UI | 🔲 Not Started | - |
+| 2.6: Display Sync Status in UI | ✅ Done | 2025-10-07 |
 | 2.7: Build Projects List and Project Overview UI | 🔲 Not Started | - |
 
-**Epic Progress**: 5/7 stories complete (71%)
+**Epic Progress**: 6/7 stories complete (86%)
 
 ---
 
 ## Definition of Done
 
-- [ ] All 7 stories completed with acceptance criteria met (5/7 complete - 71%)
+- [ ] All 7 stories completed with acceptance criteria met (6/7 complete - 86%)
 - [x] Users can create Projects and ProjectDocs via API (Stories 2.1, 2.2)
 - [ ] Users can create Projects and ProjectDocs via UI (Story 2.7)
 - [x] GitHub sync functionality working end-to-end (Stories 2.3, 2.4, 2.5) - ✅ COMPLETE
-- [ ] Sync status indicators accurate and real-time (Stories 2.5 ✅ backend, 2.6 frontend pending)
+- [x] Sync status indicators accurate and real-time (Stories 2.5 ✅ backend, 2.6 ✅ frontend) - ✅ COMPLETE
 - [x] All API endpoints documented in OpenAPI/Swagger (Stories 2.1, 2.2, 2.5)
-- [x] Unit and integration tests passing (Stories 2.1, 2.2, 2.3, 2.4, 2.5)
+- [x] Unit and integration tests passing (Stories 2.1, 2.2, 2.3, 2.4, 2.5, 2.6)
 - [x] GitHub API integration with rate limiting (Story 2.3)
 - [x] Documentation file download and storage (Story 2.4)
 - [x] Sync orchestration with status tracking (Story 2.5)
-- [ ] UI follows shadcn/ui design system (Stories 2.6, 2.7)
+- [x] UI follows shadcn/ui design system (Story 2.6) - ✅ COMPLETE
 - [ ] Empty states provide helpful guidance (Story 2.7)
+
+---

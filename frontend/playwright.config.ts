@@ -8,6 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   timeout: 60000, // Increase test timeout to 60s
+  outputDir: './tests/e2e/test-results', // Centralize test artifacts
   use: {
     baseURL: 'http://localhost:3002', // Use FRONTEND_PORT from .env
     trace: 'on-first-retry',

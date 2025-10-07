@@ -18,6 +18,11 @@ dist/
 .vite/
 coverage/
 
+# Playwright E2E test artifacts (centralized in frontend/tests/e2e/)
+test-results/
+playwright-report/
+debug-screenshot.png
+
 # IDEs
 .vscode/
 .idea/

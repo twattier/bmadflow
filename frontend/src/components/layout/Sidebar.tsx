@@ -11,7 +11,10 @@ export function Sidebar() {
           <Home className="h-5 w-5" />
           <span>Dashboard</span>
         </a>
-        <a href="/projects" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent">
+        <a
+          href="/projects"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent"
+        >
           <FileText className="h-5 w-5" />
           <span>Projects</span>
         </a>
