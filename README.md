@@ -57,6 +57,46 @@ PGADMIN_PORT=5050
 
 **⚠️ Important**: The `.env` file is gitignored. Never commit credentials to version control.
 
+## GitHub API Rate Limits
+
+BMADFlow uses the GitHub API to fetch documentation files from repositories. Understanding rate limits is important for optimal usage:
+
+### Rate Limit Tiers
+
+| Mode | Rate Limit | How to Enable |
+|------|------------|---------------|
+| **Unauthenticated** | 60 requests/hour per IP | Default (no token) |
+| **Authenticated** | 5000 requests/hour per token | Set `GITHUB_TOKEN` in `.env` |
+
+### Creating a GitHub Personal Access Token
+
+For production use or frequent syncing, create a Personal Access Token to increase your rate limit:
+
+1. **Navigate to GitHub Settings**: https://github.com/settings/tokens
+2. **Click "Generate new token (classic)"**
+3. **Configure token**:
+   - **Note**: `BMADFlow - Documentation Sync`
+   - **Expiration**: Choose an appropriate expiration date
+   - **Scopes**: Select **only** `public_repo` (for accessing public repositories)
+4. **Generate token** and copy it immediately (you won't see it again)
+5. **Add token to `.env` file**:
+   ```bash
+   GITHUB_TOKEN=ghp_your_token_here
+   ```
+
+### Required Token Scope
+
+- ✅ **`public_repo`** - Access public repositories (required for BMADFlow)
+- ❌ No other scopes needed for POC
+
+### Rate Limit Monitoring
+
+The backend logs rate limit status on startup:
+- **With token**: `GitHub API: Authenticated mode (5000 requests/hour)`
+- **Without token**: Warning message with instructions to add token
+
+**Note**: The application automatically implements exponential backoff when rate limits are approaching to prevent hitting the limit.
+
 ## Quick Start with Startup Scripts
 
 Three convenience scripts are provided for easy service management:
