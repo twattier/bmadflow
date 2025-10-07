@@ -54,6 +54,19 @@ class ProjectRepository:
         result = await db.execute(select(Project).where(Project.id == project_id))
         return result.scalar_one_or_none()
 
+    async def get_by_name(self, db: AsyncSession, name: str) -> Optional[Project]:
+        """Get project by name.
+
+        Args:
+            db: Database session
+            name: Project name
+
+        Returns:
+            Project instance or None if not found
+        """
+        result = await db.execute(select(Project).where(Project.name == name))
+        return result.scalar_one_or_none()
+
     async def update(
         self, db: AsyncSession, project_id: UUID, data: ProjectUpdate
     ) -> Optional[Project]:

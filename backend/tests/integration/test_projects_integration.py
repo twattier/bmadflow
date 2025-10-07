@@ -1,6 +1,5 @@
 """Integration tests for Project API with real database."""
 
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 

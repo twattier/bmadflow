@@ -1,18 +1,24 @@
 """ProjectDoc API router for CRUD operations."""
 
+from datetime import datetime, timedelta, timezone
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.repositories.document_repository import DocumentRepository
 from app.repositories.project_doc import ProjectDocRepository
 from app.schemas.project_doc import (
     ProjectDocCreate,
     ProjectDocResponse,
     ProjectDocUpdate,
+    SyncStatusResponse,
 )
+from app.services.document_service import DocumentService
+from app.services.github_service import GitHubService
+from app.services.project_doc_service import ProjectDocService
 
 router = APIRouter(prefix="/api", tags=["project-docs"])
 
@@ -79,3 +85,99 @@ async def delete_project_doc(id: UUID, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"ProjectDoc {id} not found",
         )
+
+
+@router.post("/project-docs/{id}/sync", status_code=status.HTTP_202_ACCEPTED)
+async def sync_project_doc(
+    id: UUID, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)
+):
+    """
+    Trigger GitHub sync for a ProjectDoc.
+
+    This endpoint initiates a background sync operation that:
+    - Fetches repository file tree from GitHub
+    - Downloads all supported file types
+    - Stores files in documents table (upsert)
+    - Updates last_synced_at timestamp
+
+    Returns 202 Accepted immediately, sync executes in background.
+    Use GET /project-docs/{id}/sync-status to check progress.
+    """
+    # Verify ProjectDoc exists
+    repo = ProjectDocRepository()
+    project_doc = await repo.get_by_id(db, id)
+    if not project_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"ProjectDoc {id} not found",
+        )
+
+    # Initialize services
+    github_service = GitHubService()
+    document_repo = DocumentRepository(db)
+    document_service = DocumentService(document_repo)
+    service = ProjectDocService(repo, github_service, document_service)
+
+    # Execute sync in background (fire-and-forget pattern for POC)
+    background_tasks.add_task(service.sync_project_doc, db, id)
+
+    return {
+        "message": "Sync started",
+        "project_doc_id": str(id),
+        "status": "processing",
+    }
+
+
+@router.get("/project-docs/{id}/sync-status", response_model=SyncStatusResponse)
+async def get_sync_status(id: UUID, db: AsyncSession = Depends(get_db)) -> SyncStatusResponse:
+    """
+    Get sync status for a ProjectDoc.
+
+    Status values:
+    - "idle": No sync performed yet (last_synced_at is null)
+    - "syncing": Sync in progress (heuristic: last_synced_at < 5 minutes ago)
+    - "completed": Sync completed successfully
+    - "failed": Sync encountered errors (check logs)
+
+    The message field provides human-readable status for frontend display.
+    """
+    # Fetch ProjectDoc
+    repo = ProjectDocRepository()
+    project_doc = await repo.get_by_id(db, id)
+    if not project_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"ProjectDoc {id} not found",
+        )
+
+    # Determine status based on timestamps
+    if project_doc.last_synced_at is None:
+        # Never synced
+        status_value = "idle"
+        message = "Not synced yet"
+    else:
+        # Check if sync is recent (within last 5 minutes - heuristic for POC)
+        time_since_sync = datetime.now(timezone.utc) - project_doc.last_synced_at
+        if time_since_sync < timedelta(minutes=5):
+            status_value = "syncing"
+            message = "Syncing..."
+        else:
+            status_value = "completed"
+            # Count synced files
+            document_repo = DocumentRepository(db)
+            doc_count = await document_repo.count_by_project_doc(id)
+            message = f"Sync completed successfully. {doc_count} files synced."
+
+            # Check if needs update
+            if (
+                project_doc.last_github_commit_date
+                and project_doc.last_synced_at < project_doc.last_github_commit_date
+            ):
+                message += " Needs update."
+
+    return SyncStatusResponse(
+        status=status_value,
+        message=message,
+        last_synced_at=project_doc.last_synced_at,
+        last_github_commit_date=project_doc.last_github_commit_date,
+    )

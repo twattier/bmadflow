@@ -173,9 +173,7 @@ async def test_folder_path_filtering():
     service = GitHubService()
 
     # Act
-    files = await service.fetch_repository_tree(
-        "https://github.com/user/repo", folder_path="docs"
-    )
+    files = await service.fetch_repository_tree("https://github.com/user/repo", folder_path="docs")
 
     # Assert
     assert len(files) == 2
@@ -321,7 +319,7 @@ async def test_download_file_content_success():
                 "path": "docs/prd.md",
                 "sha": "abc123def456",
                 "size": 1024,
-                "type": "file"
+                "type": "file",
             },
             headers={
                 "X-RateLimit-Remaining": "4998",

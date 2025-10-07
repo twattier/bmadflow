@@ -41,6 +41,15 @@ class ProjectDocRepository:
         result = await db.execute(select(ProjectDoc).where(ProjectDoc.id == id))
         return result.scalar_one_or_none()
 
+    async def get_by_name_and_project(
+        self, db: AsyncSession, project_id: UUID, name: str
+    ) -> Optional[ProjectDoc]:
+        """Get ProjectDoc by name within a specific project."""
+        result = await db.execute(
+            select(ProjectDoc).where(ProjectDoc.project_id == project_id, ProjectDoc.name == name)
+        )
+        return result.scalar_one_or_none()
+
     async def update(
         self, db: AsyncSession, id: UUID, data: ProjectDocUpdate
     ) -> Optional[ProjectDoc]:

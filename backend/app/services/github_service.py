@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 import time
+from datetime import datetime
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -54,15 +55,34 @@ class GitHubService:
         """
         owner, repo = self._parse_github_url(github_url)
 
-        # Fetch repository tree recursively
-        tree_url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/main?recursive=1"
+        # Try main branch first, then master (fallback for older repos)
+        branches_to_try = ["main", "master"]
+        response = None
+        last_error = None
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(tree_url, headers=self.headers, timeout=30.0)
+                for branch in branches_to_try:
+                    tree_url = (
+                        f"{self.base_url}/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
+                    )
 
-                #  Raise HTTP errors first (403, 404, etc.)
-                response.raise_for_status()
+                    try:
+                        response = await client.get(tree_url, headers=self.headers, timeout=30.0)
+                        response.raise_for_status()
+                        # If successful, break out of loop
+                        break
+                    except httpx.HTTPStatusError as e:
+                        if e.response.status_code == 404 and branch != branches_to_try[-1]:
+                            # Try next branch
+                            last_error = e
+                            continue
+                        else:
+                            # Re-raise for other errors or last branch attempt
+                            raise
+
+                if response is None:
+                    raise GitHubAPIError(f"Repository not found: {owner}/{repo}", 404)
 
                 # Check rate limits after confirming success
                 await self._check_rate_limit(response)
@@ -137,34 +157,45 @@ class GitHubService:
         """
         owner, repo = self._parse_github_url(github_url)
 
-        # Construct raw content URL
-        raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/{file_path}"
+        # Try main branch first, then master
+        branches_to_try = ["main", "master"]
+        content = None
+        commit_sha = None
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(raw_url, headers=self.headers, timeout=30.0)
+                for branch in branches_to_try:
+                    raw_url = (
+                        f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{file_path}"
+                    )
 
-                # Handle 404 errors gracefully
-                if response.status_code == 404:
-                    raise GitHubAPIError(f"File not found: {file_path} in {owner}/{repo}", 404)
+                    response = await client.get(raw_url, headers=self.headers, timeout=30.0)
 
-                # Raise HTTP errors for other issues
-                response.raise_for_status()
+                    # Handle 404 errors - try next branch
+                    if response.status_code == 404 and branch != branches_to_try[-1]:
+                        continue
+                    elif response.status_code == 404:
+                        raise GitHubAPIError(f"File not found: {file_path} in {owner}/{repo}", 404)
 
-                # Check rate limits after confirming success
-                await self._check_rate_limit(response)
+                    # Raise HTTP errors for other issues
+                    response.raise_for_status()
 
-                # Get commit SHA from GitHub API (using file info endpoint)
-                file_url = f"{self.base_url}/repos/{owner}/{repo}/contents/{file_path}"
-                file_response = await client.get(file_url, headers=self.headers, timeout=30.0)
-                file_response.raise_for_status()
-                file_data = file_response.json()
-                commit_sha = file_data.get("sha", "")
+                    # Check rate limits after confirming success
+                    await self._check_rate_limit(response)
 
-                content = response.text
-                logger.debug(f"Downloaded {file_path} from {owner}/{repo} ({len(content)} bytes)")
+                    # Get commit SHA from GitHub API (using file info endpoint)
+                    file_url = f"{self.base_url}/repos/{owner}/{repo}/contents/{file_path}"
+                    file_response = await client.get(file_url, headers=self.headers, timeout=30.0)
+                    file_response.raise_for_status()
+                    file_data = file_response.json()
+                    commit_sha = file_data.get("sha", "")
 
-                return content, commit_sha
+                    content = response.text
+                    logger.debug(
+                        f"Downloaded {file_path} from {owner}/{repo} ({len(content)} bytes)"
+                    )
+
+                    return content, commit_sha
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 403:
@@ -178,6 +209,86 @@ class GitHubService:
         except httpx.RequestError as e:
             logger.error(f"GitHub download request failed: {e}")
             raise GitHubAPIError(f"Network error: {e}", 500)
+
+    async def get_last_commit_date(
+        self, github_url: str, folder_path: Optional[str] = None
+    ) -> datetime:
+        """
+        Fetch last commit date for a specific folder from GitHub.
+
+        Args:
+            github_url: GitHub repository URL
+            folder_path: Optional folder path to filter commits
+
+        Returns:
+            datetime object of the last commit date
+
+        Raises:
+            GitHubAPIError: If API request fails or folder not found
+            RateLimitExceededError: If rate limit exceeded
+        """
+        owner, repo = self._parse_github_url(github_url)
+
+        # Construct commits API URL with optional folder path filter
+        commits_url = f"{self.base_url}/repos/{owner}/{repo}/commits"
+        params = {"per_page": 1}  # Only need the most recent commit
+
+        if folder_path:
+            params["path"] = folder_path.strip("/")
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    commits_url, headers=self.headers, params=params, timeout=30.0
+                )
+
+                # Raise HTTP errors
+                response.raise_for_status()
+
+                # Check rate limits
+                await self._check_rate_limit(response)
+
+                commits = response.json()
+
+                if not commits or len(commits) == 0:
+                    raise GitHubAPIError(
+                        f"No commits found for path: {folder_path or 'root'} in {owner}/{repo}",
+                        404,
+                    )
+
+                # Extract commit.committer.date from first commit
+                commit_date_str = commits[0]["commit"]["committer"]["date"]
+
+                # Parse ISO 8601 datetime string
+                commit_date = datetime.fromisoformat(commit_date_str.replace("Z", "+00:00"))
+
+                logger.debug(
+                    f"Last commit date for {owner}/{repo}"
+                    + (f"/{folder_path}" if folder_path else "")
+                    + f": {commit_date}"
+                )
+
+                return commit_date
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 403:
+                # Rate limit exceeded
+                reset_time = int(e.response.headers.get("X-RateLimit-Reset", 0))
+                raise RateLimitExceededError(reset_time)
+            elif e.response.status_code == 404:
+                raise GitHubAPIError(
+                    f"Repository or folder not found: {owner}/{repo}"
+                    + (f"/{folder_path}" if folder_path else ""),
+                    404,
+                )
+            else:
+                raise GitHubAPIError(str(e), e.response.status_code)
+        except httpx.RequestError as e:
+            logger.error(f"GitHub commits API request failed: {e}")
+            raise GitHubAPIError(f"Network error: {e}", 500)
+        except (KeyError, IndexError, ValueError) as e:
+            logger.error(f"Failed to parse commit date from GitHub response: {e}")
+            raise GitHubAPIError(f"Invalid response format from GitHub: {e}", 500)
 
     async def _check_rate_limit(self, response: httpx.Response) -> None:
         """

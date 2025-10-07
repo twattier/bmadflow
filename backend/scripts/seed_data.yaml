@@ -1,0 +1,8 @@
+project:
+    name: BMADFlow
+    description: AI-Powered Documentation Chatbot with RAG Architecture
+    project_docs:
+        - name: BMADFlow Project
+          description: BMAD Method generated Documentation
+          github_url: https://github.com/twattier/bmadflow.git
+          github_folder_path: docs

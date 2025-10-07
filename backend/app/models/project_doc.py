@@ -50,9 +50,7 @@ class ProjectDoc(Base):
     # Relationships
     project: Mapped["Project"] = relationship("Project", back_populates="project_docs")
     documents: Mapped[List["Document"]] = relationship(
-        "Document",
-        back_populates="project_doc",
-        cascade="all, delete-orphan"
+        "Document", back_populates="project_doc", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

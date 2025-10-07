@@ -18,15 +18,17 @@ async def test_store_document_success():
     project_doc_id = uuid.uuid4()
     doc_id = uuid.uuid4()
 
-    mock_repo.upsert = AsyncMock(return_value=Document(
-        id=doc_id,
-        project_doc_id=project_doc_id,
-        file_path="docs/prd.md",
-        file_type="md",
-        file_size=13,  # len("# PRD Content") = 13
-        content="# PRD Content",
-        doc_metadata={"github_commit_sha": "abc123"}
-    ))
+    mock_repo.upsert = AsyncMock(
+        return_value=Document(
+            id=doc_id,
+            project_doc_id=project_doc_id,
+            file_path="docs/prd.md",
+            file_type="md",
+            file_size=13,  # len("# PRD Content") = 13
+            content="# PRD Content",
+            doc_metadata={"github_commit_sha": "abc123"},
+        )
+    )
 
     service = DocumentService(document_repo=mock_repo)
     file_info = FileInfo(path="docs/prd.md", sha="abc123", type="blob")
@@ -36,7 +38,7 @@ async def test_store_document_success():
         project_doc_id=project_doc_id,
         file_info=file_info,
         content="# PRD Content",
-        commit_sha="abc123"
+        commit_sha="abc123",
     )
 
     # Assert
@@ -49,7 +51,7 @@ async def test_store_document_success():
         content="# PRD Content",
         file_type="md",
         file_size=13,
-        commit_sha="abc123"
+        commit_sha="abc123",
     )
 
 
@@ -71,7 +73,7 @@ async def test_store_document_calculates_metadata():
             file_type=kwargs["file_type"],
             file_size=kwargs["file_size"],
             content=kwargs["content"],
-            doc_metadata={"github_commit_sha": kwargs["commit_sha"]}
+            doc_metadata={"github_commit_sha": kwargs["commit_sha"]},
         )
 
     mock_repo.upsert = capture_upsert
@@ -93,10 +95,7 @@ async def test_store_document_calculates_metadata():
 
         # Act
         result = await service.store_document(
-            project_doc_id=project_doc_id,
-            file_info=file_info,
-            content=content,
-            commit_sha="sha123"
+            project_doc_id=project_doc_id, file_info=file_info, content=content, commit_sha="sha123"
         )
 
         # Assert
@@ -118,10 +117,7 @@ async def test_store_document_handles_errors():
     # Act & Assert
     with pytest.raises(Exception) as exc_info:
         await service.store_document(
-            project_doc_id=uuid.uuid4(),
-            file_info=file_info,
-            content="# PRD",
-            commit_sha="abc123"
+            project_doc_id=uuid.uuid4(), file_info=file_info, content="# PRD", commit_sha="abc123"
         )
 
     assert "Database error" in str(exc_info.value)
@@ -137,15 +133,17 @@ async def test_store_documents_batch():
     # Create mock documents for each call
     mock_docs = []
     for i in range(3):
-        mock_docs.append(Document(
-            id=uuid.uuid4(),
-            project_doc_id=project_doc_id,
-            file_path=f"file{i}.md",
-            file_type="md",
-            file_size=10,
-            content=f"content{i}",
-            doc_metadata={"github_commit_sha": f"sha{i}"}
-        ))
+        mock_docs.append(
+            Document(
+                id=uuid.uuid4(),
+                project_doc_id=project_doc_id,
+                file_path=f"file{i}.md",
+                file_type="md",
+                file_size=10,
+                content=f"content{i}",
+                doc_metadata={"github_commit_sha": f"sha{i}"},
+            )
+        )
 
     mock_repo.upsert = AsyncMock(side_effect=mock_docs)
 
@@ -187,7 +185,7 @@ async def test_store_documents_batch_partial_failure():
             file_type=kwargs["file_type"],
             file_size=kwargs["file_size"],
             content=kwargs["content"],
-            doc_metadata={"github_commit_sha": kwargs["commit_sha"]}
+            doc_metadata={"github_commit_sha": kwargs["commit_sha"]},
         )
 
     mock_repo.upsert = AsyncMock(side_effect=upsert_side_effect)

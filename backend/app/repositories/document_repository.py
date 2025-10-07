@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document import Document
@@ -116,6 +116,22 @@ class DocumentRepository:
             select(Document).where(Document.project_doc_id == project_doc_id)
         )
         return list(result.scalars().all())
+
+    async def count_by_project_doc(self, project_doc_id: UUID) -> int:
+        """Count documents for a ProjectDoc.
+
+        Args:
+            project_doc_id: ProjectDoc UUID
+
+        Returns:
+            Number of documents for the ProjectDoc
+        """
+        result = await self.db.execute(
+            select(func.count())
+            .select_from(Document)
+            .where(Document.project_doc_id == project_doc_id)
+        )
+        return result.scalar() or 0
 
     async def delete_by_project_doc(self, project_doc_id: UUID) -> int:
         """Delete all documents for a ProjectDoc (for re-sync).

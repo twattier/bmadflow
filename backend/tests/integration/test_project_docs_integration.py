@@ -1,6 +1,7 @@
 """Integration tests for ProjectDoc repository and database operations."""
 
 import asyncio
+
 import pytest
 from sqlalchemy import select
 

@@ -1,23 +1,21 @@
 """Integration tests for Document sync workflow."""
 
-import uuid
-from typing import AsyncGenerator
 
+from datetime import datetime
+
+import httpx
 import pytest
 import respx
-import httpx
-from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.models.document import Document
 from app.models.project import Project
 from app.models.project_doc import ProjectDoc
-from app.models.document import Document
 from app.repositories.document_repository import DocumentRepository
+from app.schemas.github import FileInfo
 from app.services.document_service import DocumentService
 from app.services.github_service import GitHubService
-from app.schemas.github import FileInfo
 
 
 @pytest.fixture
@@ -34,9 +32,7 @@ async def test_project(db_session: AsyncSession) -> Project:
 
 
 @pytest.fixture
-async def test_project_doc(
-    db_session: AsyncSession, test_project: Project
-) -> ProjectDoc:
+async def test_project_doc(db_session: AsyncSession, test_project: Project) -> ProjectDoc:
     """Create a test project doc."""
     project_doc = ProjectDoc(
         project_id=test_project.id,
@@ -53,9 +49,7 @@ async def test_project_doc(
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_sync_documents_from_github(
-    db_session: AsyncSession, test_project_doc: ProjectDoc
-):
+async def test_sync_documents_from_github(db_session: AsyncSession, test_project_doc: ProjectDoc):
     """Test full document sync workflow with 10+ files."""
     # Arrange: Mock GitHub API responses for 12 files
     file_contents = {
@@ -75,9 +69,7 @@ async def test_sync_documents_from_github(
 
     # Mock raw content URLs for all files
     for file_path, content in file_contents.items():
-        respx.get(
-            f"https://raw.githubusercontent.com/test-user/test-repo/main/{file_path}"
-        ).mock(
+        respx.get(f"https://raw.githubusercontent.com/test-user/test-repo/main/{file_path}").mock(
             return_value=httpx.Response(
                 200,
                 text=content,
@@ -91,9 +83,7 @@ async def test_sync_documents_from_github(
 
         # Mock GitHub API contents endpoint for SHA
         file_name = file_path.split("/")[-1]
-        respx.get(
-            f"https://api.github.com/repos/test-user/test-repo/contents/{file_path}"
-        ).mock(
+        respx.get(f"https://api.github.com/repos/test-user/test-repo/contents/{file_path}").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -132,9 +122,7 @@ async def test_sync_documents_from_github(
         files_to_sync.append((file_info, downloaded_content, commit_sha))
 
     # Act: Sync documents
-    stored_docs = await document_service.store_documents_batch(
-        test_project_doc.id, files_to_sync
-    )
+    stored_docs = await document_service.store_documents_batch(test_project_doc.id, files_to_sync)
 
     # Assert: Verify all files stored
     assert len(stored_docs) == 12, "Should store all 12 files"
@@ -190,9 +178,7 @@ async def test_sync_documents_from_github(
 
 
 @pytest.mark.asyncio
-async def test_document_cascade_delete(
-    db_session: AsyncSession, test_project_doc: ProjectDoc
-):
+async def test_document_cascade_delete(db_session: AsyncSession, test_project_doc: ProjectDoc):
     """Test that documents are deleted when ProjectDoc is deleted."""
     # Arrange: Create some test documents
     doc1 = Document(
