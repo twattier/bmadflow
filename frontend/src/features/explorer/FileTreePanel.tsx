@@ -58,7 +58,7 @@ export function FileTreePanel({ projectId, onSelectFile, className }: FileTreePa
     return <FileText className="h-4 w-4 text-muted-foreground" />;
   };
 
-  const handleNodeClick = (node: any) => {
+  const handleNodeClick = (node: { data: FileNode; toggle: () => void }) => {
     if (node.data.type === 'folder') {
       node.toggle();
     } else {

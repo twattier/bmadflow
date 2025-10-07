@@ -26,7 +26,8 @@ describe('FileTreePanel', () => {
       data: undefined,
       isLoading: true,
       error: null,
-    } as any);
+      refetch: vi.fn(),
+    } as ReturnType<typeof useFileTree>);
 
     const { container } = render(<FileTreePanel projectId="123" onSelectFile={vi.fn()} />, {
       wrapper: createWrapper(),
@@ -40,7 +41,8 @@ describe('FileTreePanel', () => {
       data: { project_id: '123', tree: [] },
       isLoading: false,
       error: null,
-    } as any);
+      refetch: vi.fn(),
+    } as ReturnType<typeof useFileTree>);
 
     render(<FileTreePanel projectId="123" onSelectFile={vi.fn()} />, {
       wrapper: createWrapper(),
@@ -56,7 +58,8 @@ describe('FileTreePanel', () => {
       data: undefined,
       isLoading: false,
       error: new Error('Failed to fetch'),
-    } as any);
+      refetch: vi.fn(),
+    } as ReturnType<typeof useFileTree>);
 
     render(<FileTreePanel projectId="123" onSelectFile={vi.fn()} />, {
       wrapper: createWrapper(),
@@ -88,7 +91,8 @@ describe('FileTreePanel', () => {
       data: { project_id: '123', tree: mockFileTree },
       isLoading: false,
       error: null,
-    } as any);
+      refetch: vi.fn(),
+    } as ReturnType<typeof useFileTree>);
 
     render(<FileTreePanel projectId="123" onSelectFile={vi.fn()} />, {
       wrapper: createWrapper(),
