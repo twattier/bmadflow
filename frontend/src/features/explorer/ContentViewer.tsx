@@ -7,9 +7,16 @@ import { TableOfContents } from './TableOfContents';
 interface ContentViewerProps {
   file: FileNode | null;
   className?: string;
+  projectId?: string;
+  onDocumentSelect?: (document: FileNode) => void;
 }
 
-export function ContentViewer({ file, className }: ContentViewerProps) {
+export function ContentViewer({
+  file,
+  className,
+  projectId,
+  onDocumentSelect,
+}: ContentViewerProps) {
   const { data: document, isLoading, error } = useDocument(file?.id || null);
 
   if (!file) {
@@ -35,7 +42,13 @@ export function ContentViewer({ file, className }: ContentViewerProps) {
         {document && file.file_type === 'md' && (
           <div>
             <TableOfContents content={document.content} />
-            <MarkdownRenderer content={document.content} className="mt-4" />
+            <MarkdownRenderer
+              content={document.content}
+              className="mt-4"
+              projectId={projectId}
+              currentDocument={file}
+              onDocumentSelect={onDocumentSelect}
+            />
           </div>
         )}
 

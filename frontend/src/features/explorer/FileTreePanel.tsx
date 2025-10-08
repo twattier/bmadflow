@@ -1,4 +1,5 @@
-import { Tree } from 'react-arborist';
+import { useRef, useEffect } from 'react';
+import { Tree, TreeApi } from 'react-arborist';
 import { ChevronRight, ChevronDown, FileText, Table, FileCode, Folder } from 'lucide-react';
 import { useFileTree } from '@/api/hooks/useFileTree';
 import type { FileNode } from '@/api/types/document';
@@ -7,12 +8,53 @@ import { cn } from '@/lib/utils';
 
 interface FileTreePanelProps {
   projectId: string;
+  selectedFile?: FileNode | null;
   onSelectFile: (file: FileNode) => void;
   className?: string;
 }
 
-export function FileTreePanel({ projectId, onSelectFile, className }: FileTreePanelProps) {
+export function FileTreePanel({
+  projectId,
+  selectedFile,
+  onSelectFile,
+  className,
+}: FileTreePanelProps) {
   const { data, isLoading, error } = useFileTree(projectId);
+  const treeRef = useRef<TreeApi<FileNode> | null>(null);
+
+  // Sync tree selection when selectedFile changes externally (e.g., from link navigation)
+  useEffect(() => {
+    if (selectedFile && treeRef.current) {
+      const nodeId = selectedFile.id || selectedFile.path;
+      // Deselect all first, then select the target node
+      treeRef.current.deselectAll();
+      treeRef.current.select(nodeId);
+
+      // Also focus the node to ensure it's visible
+      const node = treeRef.current.get(nodeId);
+      if (node && !node.isVisible) {
+        node.open();
+      }
+    }
+  }, [selectedFile]);
+
+  const getFileIcon = (node: FileNode) => {
+    if (node.type === 'folder') {
+      return <Folder className="h-4 w-4 text-muted-foreground" />;
+    }
+
+    const fileType = node.file_type?.toLowerCase();
+    if (fileType === 'md') {
+      return <FileText className="h-4 w-4 text-blue-500" />;
+    }
+    if (fileType === 'csv') {
+      return <Table className="h-4 w-4 text-green-500" />;
+    }
+    if (fileType === 'yaml' || fileType === 'json') {
+      return <FileCode className="h-4 w-4 text-orange-500" />;
+    }
+    return <FileText className="h-4 w-4 text-muted-foreground" />;
+  };
 
   if (isLoading) {
     return (
@@ -40,24 +82,6 @@ export function FileTreePanel({ projectId, onSelectFile, className }: FileTreePa
     );
   }
 
-  const getFileIcon = (node: FileNode) => {
-    if (node.type === 'folder') {
-      return <Folder className="h-4 w-4 text-muted-foreground" />;
-    }
-
-    const fileType = node.file_type?.toLowerCase();
-    if (fileType === 'md') {
-      return <FileText className="h-4 w-4 text-blue-500" />;
-    }
-    if (fileType === 'csv') {
-      return <Table className="h-4 w-4 text-green-500" />;
-    }
-    if (fileType === 'yaml' || fileType === 'json') {
-      return <FileCode className="h-4 w-4 text-orange-500" />;
-    }
-    return <FileText className="h-4 w-4 text-muted-foreground" />;
-  };
-
   const handleNodeClick = (node: { data: FileNode; toggle: () => void }) => {
     if (node.data.type === 'folder') {
       node.toggle();
@@ -69,6 +93,7 @@ export function FileTreePanel({ projectId, onSelectFile, className }: FileTreePa
   return (
     <div className={cn('overflow-auto', className)} data-testid="file-tree">
       <Tree
+        ref={treeRef}
         data={data.tree}
         idAccessor={(node) => node.id || node.path}
         initialOpenState={{ 0: true }}

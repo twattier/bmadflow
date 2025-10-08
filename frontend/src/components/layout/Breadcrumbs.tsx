@@ -21,6 +21,10 @@ export function Breadcrumbs() {
   // Parse the current path to generate breadcrumbs
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
+  // Extract file path from URL search params if present
+  const searchParams = new URLSearchParams(location.search);
+  const filePath = searchParams.get('file');
+
   // Define breadcrumb structure based on routes
   const getBreadcrumbs = () => {
     const crumbs: Array<{ label: string; path?: string }> = [];
@@ -46,7 +50,26 @@ export function Breadcrumbs() {
           crumbs.push({ label: project.name, path: `/projects/${projectId}` });
           const subPath = pathSegments[2];
           const label = subPath.charAt(0).toUpperCase() + subPath.slice(1);
-          crumbs.push({ label });
+
+          // If on explorer page and file is selected, show file path breadcrumbs
+          if (subPath === 'explorer' && filePath) {
+            crumbs.push({ label, path: `/projects/${projectId}/explorer` });
+
+            // Split file path into segments and create breadcrumbs
+            const fileSegments = filePath.split('/').filter(Boolean);
+            fileSegments.forEach((segment, idx) => {
+              const isLastSegment = idx === fileSegments.length - 1;
+              // Only the last segment (file name) is not clickable
+              if (isLastSegment) {
+                crumbs.push({ label: segment });
+              } else {
+                // Directory segments are clickable (for future directory navigation)
+                crumbs.push({ label: segment });
+              }
+            });
+          } else {
+            crumbs.push({ label });
+          }
         }
       }
     } else if (pathSegments[0] === 'config') {
