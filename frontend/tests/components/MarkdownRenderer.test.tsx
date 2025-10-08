@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MarkdownRenderer } from '@/features/explorer/MarkdownRenderer';
+import type { FileNode } from '@/api/types/document';
 
 // Mock mermaid
 vi.mock('mermaid', () => ({
@@ -8,6 +9,11 @@ vi.mock('mermaid', () => ({
     initialize: vi.fn(),
     render: vi.fn(() => Promise.resolve({ svg: '<svg>Mermaid Diagram</svg>' })),
   },
+}));
+
+// Mock document service
+vi.mock('@/api/services/documentService', () => ({
+  findDocumentByRelativePath: vi.fn(),
 }));
 
 describe('MarkdownRenderer', () => {
@@ -134,5 +140,125 @@ describe('MarkdownRenderer', () => {
     const codeBlock = container.querySelector('code.language-javascript');
     expect(codeBlock).toBeInTheDocument();
     expect(codeBlock?.textContent).toContain('console.log');
+  });
+
+  // Navigation-specific tests
+  describe('Link Navigation', () => {
+    const mockProjectId = 'test-project-123';
+    const mockCurrentDocument: FileNode = {
+      id: 'doc-1',
+      name: 'current.md',
+      type: 'file',
+      path: '/docs/current.md',
+      file_type: 'md',
+      size: 1024,
+    };
+    let mockOnDocumentSelect: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockOnDocumentSelect = vi.fn();
+      window.open = vi.fn();
+    });
+
+    it('renders external links with target="_blank"', () => {
+      const content = '[External Link](https://example.com)';
+
+      render(
+        <MarkdownRenderer
+          content={content}
+          projectId={mockProjectId}
+          currentDocument={mockCurrentDocument}
+          onDocumentSelect={mockOnDocumentSelect}
+        />
+      );
+
+      const link = screen.getByText('External Link').closest('a');
+      expect(link).toHaveAttribute('href', 'https://example.com');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('renders relative links with href attribute', () => {
+      const content = '[Relative Link](./target.md)';
+
+      render(
+        <MarkdownRenderer
+          content={content}
+          projectId={mockProjectId}
+          currentDocument={mockCurrentDocument}
+          onDocumentSelect={mockOnDocumentSelect}
+        />
+      );
+
+      const link = screen.getByText('Relative Link').closest('a');
+      expect(link).toHaveAttribute('href', './target.md');
+    });
+
+    it('renders anchor-only links normally', () => {
+      const content = '[Section Link](#overview)';
+
+      render(
+        <MarkdownRenderer
+          content={content}
+          projectId={mockProjectId}
+          currentDocument={mockCurrentDocument}
+          onDocumentSelect={mockOnDocumentSelect}
+        />
+      );
+
+      const link = screen.getByText('Section Link').closest('a');
+      expect(link).toHaveAttribute('href', '#overview');
+      expect(link).not.toHaveAttribute('target');
+    });
+
+    it('handles links without navigation props (backward compatibility)', () => {
+      const content = '[Some Link](./file.md)';
+
+      render(<MarkdownRenderer content={content} />);
+
+      const link = screen.getByText('Some Link').closest('a');
+      expect(link).toHaveAttribute('href', './file.md');
+    });
+
+    it('renders http:// links as external', () => {
+      const content = '[HTTP Link](http://example.com)';
+
+      render(
+        <MarkdownRenderer
+          content={content}
+          projectId={mockProjectId}
+          currentDocument={mockCurrentDocument}
+          onDocumentSelect={mockOnDocumentSelect}
+        />
+      );
+
+      const link = screen.getByText('HTTP Link').closest('a');
+      expect(link).toHaveAttribute('target', '_blank');
+    });
+
+    it('handles mixed link types in same document', () => {
+      const content = `
+[External](https://example.com)
+[Relative](./file.md)
+[Anchor](#section)
+      `;
+
+      render(
+        <MarkdownRenderer
+          content={content}
+          projectId={mockProjectId}
+          currentDocument={mockCurrentDocument}
+          onDocumentSelect={mockOnDocumentSelect}
+        />
+      );
+
+      const externalLink = screen.getByText('External').closest('a');
+      const relativeLink = screen.getByText('Relative').closest('a');
+      const anchorLink = screen.getByText('Anchor').closest('a');
+
+      expect(externalLink).toHaveAttribute('target', '_blank');
+      expect(relativeLink).toHaveAttribute('href', './file.md');
+      expect(anchorLink).toHaveAttribute('href', '#section');
+    });
   });
 });
