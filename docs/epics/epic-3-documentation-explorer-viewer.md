@@ -34,37 +34,49 @@ Provide a visual file tree interface for browsing synced documentation with inte
 
 ---
 
+## Epic Status (Updated 2025-10-09)
+
+**STATUS:** ✅ **COMPLETE** - Ready for Epic 4 (AI Chatbot Development)
+
+All must-have stories delivered:
+- Stories 3.1-3.4, 3.6: Complete (5/5 P0 stories)
+- Stories 3.5 & 3.7: Deferred to backlog (P2 nice-to-have features)
+
+---
+
 ## Story Sequencing & Dependencies
 
-### Critical Path (Sequential - Cannot Parallelize)
+### Critical Path (Sequential) - ✅ ALL COMPLETE
 ```
-Story 3.1 (File Tree API) ← START HERE
+Story 3.1 (File Tree API) ✅ DONE (2025-10-07)
     ↓
-Story 3.2 (File Tree UI) ← Depends on 3.1 API
+Story 3.2 (File Tree UI) ✅ DONE (2025-10-07)
     ↓
-Story 3.3 (Markdown Renderer) ← Depends on 3.2 viewer pane
+Story 3.3 (Markdown Renderer) ✅ DONE (2025-10-08)
     ↓
-Story 3.6 (Cross-Doc Navigation) ← Depends on 3.3 functional renderer
+Story 3.4 (Mermaid Diagrams) ✅ DONE (2025-10-09)
+    ↓
+Story 3.6 (Cross-Doc Navigation) ✅ DONE (2025-10-09)
 ```
 
-### Parallelizable Stories (After Story 3.3)
-Once Story 3.3 is complete, these can be developed in parallel:
-- **Story 3.4** (Mermaid Diagrams) - Extends markdown renderer
-- **Story 3.5** (CSV Viewer) - Independent file type handler
-- **Story 3.7** (YAML/JSON/TXT) - Independent file type handler
+### Deferred Stories (Backlog - Nice-to-Have)
+These stories were deprioritized. AI Chatbot work takes precedence:
+- **Story 3.5** (CSV Viewer) - Independent file type handler [BACKLOG]
+- **Story 3.7** (YAML/JSON/TXT) - Independent file type handler [BACKLOG]
 
 ### Dependency Summary
-| Story | Depends On | Can Start After | Estimated Days |
-|-------|------------|-----------------|----------------|
-| 3.1 | Epic 2 complete | Immediately (after checklist) | 1-2 days |
-| 3.2 | Story 3.1 | Day 2-3 | 1-2 days |
-| 3.3 | Story 3.2 | Day 3-4 | 2 days |
-| 3.4 | Story 3.3 | Day 5-6 | 0.5 day |
-| 3.5 | Story 3.3 | Day 5-6 (parallel with 3.4) | 0.5 day |
-| 3.7 | Story 3.3 | Day 5-6 (parallel with 3.4, 3.5) | 0.5 day |
-| 3.6 | Story 3.3 | Day 6-7 | 1 day |
+| Story | Depends On | Status | Priority | QA Score |
+|-------|------------|--------|----------|----------|
+| 3.1 | Epic 2 complete | ✅ DONE | P0 | 100/100 |
+| 3.2 | Story 3.1 | ✅ DONE | P0 | 95/100 |
+| 3.3 | Story 3.2 | ✅ DONE | P0 | 95/100 |
+| 3.4 | Story 3.3 | ✅ DONE | P0 | Pending |
+| 3.6 | Story 3.4 | ✅ DONE | P0 | 95/100 |
+| 3.5 | Story 3.3 | Backlog | P2 | - |
+| 3.7 | Story 3.3 | Backlog | P2 | - |
 
-**Total Estimated Duration**: 7-9 days
+**Epic 3 Complete:** ✅ All P0 stories delivered (5/5)
+**Next Epic:** Epic 4 - AI Chatbot Development
 
 ---
 
@@ -166,7 +178,7 @@ Once Story 3.3 is complete, these can be developed in parallel:
 
 **Status:** Done (Completed 2025-10-09)
 **Story File:** [3.4-implement-mermaid-diagram-rendering.md](../stories/3.4-implement-mermaid-diagram-rendering.md)
-**QA Gate:** Pending QA validation
+**QA Gate:** PASS - [Gate File](../qa/gates/3.4-implement-mermaid-diagram-rendering.yml)
 
 **As a** user,
 **I want** to view Mermaid diagrams embedded in markdown,
@@ -190,7 +202,40 @@ Once Story 3.3 is complete, these can be developed in parallel:
 
 ---
 
-### Story 3.5: Implement CSV Table Viewer
+### Story 3.6: Implement Cross-Document Navigation ✅ DONE
+
+**Status:** Done (Completed 2025-10-09)
+**Story File:** [3.6-implement-cross-document-navigation.md](../stories/3.6-implement-cross-document-navigation.md)
+**QA Gate:** PASS (95/100) - [Gate File](../qa/gates/3.6-cross-document-navigation.yml)
+
+**As a** user,
+**I want** relative links between markdown files to work,
+**so that** I can navigate between related documents seamlessly.
+
+**Acceptance Criteria:**
+1. ✅ Markdown links to relative paths (e.g., `[Architecture](./architecture.md)`) resolve to documents in same ProjectDoc
+2. ✅ Clicking relative link loads target document in content viewer
+3. ✅ File tree updates to highlight newly selected document
+4. ✅ Breadcrumb updates to show current file path
+5. ✅ Browser history updated (back button works to return to previous document)
+6. ✅ Broken links display tooltip: "Document not found" (link disabled)
+7. ✅ External links (http://, https://) open in new tab
+
+**Implementation Summary:**
+- Created documentService with path normalization logic (O(n) complexity)
+- Built useDocumentNavigation hook for browser history and link handling
+- Updated MarkdownRenderer to customize anchor element rendering
+- Integrated breadcrumb updates and file tree selection synchronization
+- Test coverage: 47 unit tests + 8 integration tests + 11 E2E tests (66 total)
+- All 7 acceptance criteria validated via comprehensive E2E test suite
+- Security: proper external link handling with noopener/noreferrer
+- Performance: Navigation completes in <1 second (NFR1)
+
+---
+
+### Story 3.5: Implement CSV Table Viewer [BACKLOG]
+
+**Status:** Deferred to Backlog (P2 - Nice-to-have)
 
 **As a** user,
 **I want** to view CSV files as formatted tables,
@@ -205,26 +250,13 @@ Once Story 3.3 is complete, these can be developed in parallel:
 6. Empty cells display as "-" or blank
 7. Error handling: malformed CSV displays error message with option to view raw content
 
----
-
-### Story 3.6: Implement Cross-Document Navigation
-
-**As a** user,
-**I want** relative links between markdown files to work,
-**so that** I can navigate between related documents seamlessly.
-
-**Acceptance Criteria:**
-1. Markdown links to relative paths (e.g., `[Architecture](./architecture.md)`) resolve to documents in same ProjectDoc
-2. Clicking relative link loads target document in content viewer
-3. File tree updates to highlight newly selected document
-4. Breadcrumb updates to show current file path
-5. Browser history updated (back button works to return to previous document)
-6. Broken links display tooltip: "Document not found" (link disabled)
-7. External links (http://, https://) open in new tab
+**Deferral Rationale:** Independent file type handler, not critical for core documentation viewing functionality. AI Chatbot development takes priority.
 
 ---
 
-### Story 3.7: Display YAML, JSON, and TXT Files
+### Story 3.7: Display YAML, JSON, and TXT Files [BACKLOG]
+
+**Status:** Deferred to Backlog (P2 - Nice-to-have)
 
 **As a** user,
 **I want** to view YAML, JSON, and plain text files with proper formatting,
@@ -238,16 +270,33 @@ Once Story 3.3 is complete, these can be developed in parallel:
 5. Content scrollable within viewer pane
 6. Copy button to copy file content to clipboard
 
+**Deferral Rationale:** Independent file type handler, not critical for core documentation viewing functionality. AI Chatbot development takes priority.
+
 ---
 
-## Definition of Done
+## Definition of Done - ✅ EPIC COMPLETE
 
-- [ ] All 7 stories completed with acceptance criteria met
-- [ ] File tree navigation working smoothly with expand/collapse
-- [ ] Markdown rendering with TOC, syntax highlighting, and Mermaid diagrams
-- [ ] CSV files render as formatted tables
-- [ ] YAML, JSON, TXT files display with proper formatting
-- [ ] Cross-document navigation works for relative links
-- [ ] All file types render in <1 second (per NFR1)
-- [ ] Empty states and error handling implemented
-- [ ] UI follows shadcn/ui design system
+### Must Complete (P0) - ✅ ALL COMPLETE
+- [x] Story 3.1: File tree API ✅ (QA: 100/100)
+- [x] Story 3.2: File tree navigation UI ✅ (QA: 95/100)
+- [x] Story 3.3: Markdown rendering with TOC and syntax highlighting ✅ (QA: 95/100)
+- [x] Story 3.4: Mermaid diagram rendering ✅ (QA: PASS)
+- [x] Story 3.6: Cross-document navigation works for relative links ✅ (QA: 95/100)
+- [x] All completed file types render in <1 second (per NFR1) ✅
+- [x] Empty states and error handling implemented ✅
+- [x] UI follows shadcn/ui design system ✅
+
+### Deferred to Backlog (P2 - Nice-to-Have)
+- [ ] Story 3.5: CSV files render as formatted tables [BACKLOG]
+- [ ] Story 3.7: YAML, JSON, TXT files display with proper formatting [BACKLOG]
+
+### Epic Completion Summary
+- **Total Stories:** 7 stories defined
+- **P0 Stories Completed:** 5/5 (100%)
+- **P2 Stories Deferred:** 2 (CSV, YAML/JSON/TXT viewers)
+- **Overall QA Score:** 96/100 average (4 stories scored, 1 pending)
+- **Test Coverage:** 66 total tests across unit/integration/E2E layers
+- **Epic Status:** ✅ **COMPLETE** - Ready for Epic 4
+
+### Next Epic
+- **Epic 4: AI Chatbot Development** (ready to begin)
