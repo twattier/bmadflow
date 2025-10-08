@@ -7,6 +7,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { cn } from '@/lib/utils';
+import { MermaidDiagram } from './MermaidDiagram';
 
 interface MarkdownRendererProps {
   content: string;
@@ -26,18 +27,32 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         rehypePlugins={[rehypeRaw, rehypeSlug, rehypeAutolinkHeadings]}
         components={{
           code(props) {
-            const { children, className, ...rest } = props;
+            const { children, className, node, ...rest } = props;
             const match = /language-(\w+)/.exec(className || '');
-            return match ? (
-              <SyntaxHighlighter
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                style={vscDarkPlus as any}
-                language={match[1]}
-                PreTag="div"
-              >
-                {String(children).replace(/\n$/, '')}
-              </SyntaxHighlighter>
-            ) : (
+            const language = match ? match[1] : '';
+            const inline = !node || node.position?.start.line === node.position?.end.line;
+
+            // Handle Mermaid diagrams
+            if (!inline && language === 'mermaid') {
+              return <MermaidDiagram chart={String(children)} />;
+            }
+
+            // Handle other code blocks with syntax highlighting
+            if (!inline && match) {
+              return (
+                <SyntaxHighlighter
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  style={vscDarkPlus as any}
+                  language={language}
+                  PreTag="div"
+                >
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+              );
+            }
+
+            // Inline code
+            return (
               <code className={cn('rounded bg-muted px-1 py-0.5', className)} {...rest}>
                 {children}
               </code>

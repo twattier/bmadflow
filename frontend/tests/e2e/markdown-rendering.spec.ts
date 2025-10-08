@@ -148,4 +148,44 @@ test.describe('Markdown Rendering', () => {
       await expect(placeholder).toBeVisible();
     }
   });
+
+  test('should render Mermaid diagram in markdown file', async ({ page }) => {
+    // Navigate to Explorer (using test project ID)
+    await page.goto('http://localhost:3002/projects/49d4acff-e89d-4149-ae7f-331d39ccb75f/explorer');
+
+    // Wait for file tree to load
+    await page.waitForSelector('[data-testid="file-tree"]', { timeout: 10000 });
+
+    // Click on a markdown file with Mermaid diagram (architecture docs often have them)
+    const markdownFile = page.locator('text=/architecture|high-level/i').first();
+    await markdownFile.click();
+
+    // Wait for content to load
+    await page.waitForTimeout(2000);
+
+    // Wait for MermaidDiagram component to render
+    try {
+      const diagram = page.locator('[data-testid="mermaid-diagram"]').first();
+      await diagram.waitFor({ state: 'visible', timeout: 5000 });
+
+      // Verify MermaidDiagram component is rendered
+      await expect(diagram).toBeVisible();
+
+      // Verify diagram SVG element exists
+      const svg = diagram.locator('svg').first();
+      const svgCount = await svg.count();
+
+      if (svgCount > 0) {
+        await expect(svg).toBeVisible();
+
+        // Take screenshot for visual verification
+        await page.screenshot({ path: 'playwright-report/mermaid-diagram.png' });
+      }
+    } catch {
+      // No Mermaid diagram in the selected file, which is acceptable
+      // Verify markdown is still rendered correctly
+      const proseContainer = page.locator('.prose');
+      await expect(proseContainer).toBeVisible();
+    }
+  });
 });

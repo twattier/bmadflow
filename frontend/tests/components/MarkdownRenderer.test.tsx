@@ -1,6 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { MarkdownRenderer } from '@/features/explorer/MarkdownRenderer';
+
+// Mock mermaid
+vi.mock('mermaid', () => ({
+  default: {
+    initialize: vi.fn(),
+    render: vi.fn(() => Promise.resolve({ svg: '<svg>Mermaid Diagram</svg>' })),
+  },
+}));
 
 describe('MarkdownRenderer', () => {
   it('renders markdown headings', () => {
@@ -107,5 +115,24 @@ describe('MarkdownRenderer', () => {
     expect(proseContainer).toBeInTheDocument();
     expect(proseContainer).toHaveClass('prose-slate');
     expect(proseContainer).toHaveClass('prose-sm');
+  });
+
+  it('renders mermaid code block as diagram', async () => {
+    const content = '```mermaid\ngraph TD\nA-->B\n```';
+
+    render(<MarkdownRenderer content={content} />);
+
+    const diagram = await screen.findByTestId('mermaid-diagram');
+    expect(diagram).toBeInTheDocument();
+  });
+
+  it('non-mermaid code blocks still render with syntax highlighting', () => {
+    const content = '```javascript\nconsole.log("hello");\n```';
+
+    const { container } = render(<MarkdownRenderer content={content} />);
+
+    const codeBlock = container.querySelector('code.language-javascript');
+    expect(codeBlock).toBeInTheDocument();
+    expect(codeBlock?.textContent).toContain('console.log');
   });
 });
