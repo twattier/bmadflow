@@ -1,6 +1,5 @@
 """Integration tests for Document sync workflow."""
 
-
 from datetime import datetime
 
 import httpx

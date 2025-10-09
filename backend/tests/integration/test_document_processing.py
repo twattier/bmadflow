@@ -101,8 +101,7 @@ All API endpoints SHALL validate input using Pydantic schemas.
     assert "BMADFlow" in all_text, "Project name should be preserved"
     # Headers may be stripped during chunking, check for substantial content instead
     assert (
-        "documentation management" in all_text.lower()
-        or "requirements" in all_text.lower()
+        "documentation management" in all_text.lower() or "requirements" in all_text.lower()
     ), "Document purpose should be preserved"
     assert (
         "vector" in all_text.lower() or "search" in all_text.lower()

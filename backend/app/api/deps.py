@@ -1,6 +1,5 @@
 """Dependency injection for API endpoints."""
 
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 

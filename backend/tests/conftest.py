@@ -1,6 +1,5 @@
 """Pytest configuration and fixtures for tests."""
 
-
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker

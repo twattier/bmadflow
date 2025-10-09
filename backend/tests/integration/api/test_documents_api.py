@@ -1,8 +1,9 @@
 """Integration tests for Documents API."""
 
+from uuid import uuid4
+
 import pytest
 from httpx import ASGITransport, AsyncClient
-from uuid import uuid4
 
 from app.main import app
 
