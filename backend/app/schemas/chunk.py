@@ -1,41 +1,69 @@
-"""Chunk schema for document processing."""
+"""Chunk schema for vector embeddings."""
 
-from pydantic import BaseModel, Field
+import uuid
+from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class ChunkCreate(BaseModel):
+    """Request model for creating a chunk with embedding.
+
+    Attributes:
+        document_id: UUID of parent document
+        chunk_text: Text content of chunk
+        chunk_index: 0-based position in document
+        embedding: 768-dimensional vector embedding
+        header_anchor: Markdown section anchor (nullable)
+        metadata: JSONB metadata with file info
+    """
+
+    document_id: uuid.UUID
+    chunk_text: str = Field(..., min_length=1)
+    chunk_index: int = Field(..., ge=0)
+    embedding: List[float] = Field(..., min_length=768, max_length=768)
+    header_anchor: Optional[str] = Field(None, max_length=512)
+    metadata: Optional[dict] = None
+
+    @field_validator("embedding")
+    @classmethod
+    def validate_embedding_dimension(cls, v: List[float]) -> List[float]:
+        """Ensure embedding is exactly 768 dimensions."""
+        if len(v) != 768:
+            raise ValueError(f"Embedding must be 768 dimensions, got {len(v)}")
+        return v
+
+    @field_validator("metadata")
+    @classmethod
+    def validate_metadata_structure(cls, v: Optional[dict]) -> Optional[dict]:
+        """Validate metadata contains required fields."""
+        if v is not None:
+            required_fields = [
+                "file_path",
+                "file_name",
+                "file_type",
+                "chunk_position",
+                "total_chunks",
+            ]
+            missing = [f for f in required_fields if f not in v]
+            if missing:
+                raise ValueError(f"Metadata missing required fields: {missing}")
+        return v
 
 
 class ChunkResponse(BaseModel):
-    """Response model for document chunks.
+    """Response model for chunk data.
 
-    Represents a single chunk of processed document content with metadata
-    for tracking position and context within the source document.
-
-    Attributes:
-        text: The actual chunk content as a string
-        index: Zero-based order of the chunk within the document
-        metadata: Additional information about the chunk including:
-            - file_path: Source file path (if applicable)
-            - file_type: File extension (md, csv, yaml, json)
-            - position: Character position in original document
-            - total_chunks: Total number of chunks for this document
-            - headers: Markdown headers context (for markdown files)
+    Note: Embedding not included in response (too large for API).
     """
 
-    text: str = Field(..., description="Chunk content text")
-    index: int = Field(..., ge=0, description="Zero-based chunk order")
-    metadata: dict = Field(default_factory=dict, description="Additional chunk metadata")
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_schema_extra = {
-            "example": {
-                "text": "# Introduction\\n\\nThis is a sample document.",
-                "index": 0,
-                "metadata": {
-                    "file_type": "md",
-                    "position": 0,
-                    "total_chunks": 5,
-                    "headers": ["Introduction"],
-                },
-            }
-        }
+    id: uuid.UUID
+    document_id: uuid.UUID
+    chunk_text: str
+    chunk_index: int
+    header_anchor: Optional[str]
+    metadata: Optional[dict]
+    created_at: datetime

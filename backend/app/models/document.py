@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
@@ -12,6 +12,7 @@ from sqlalchemy.sql import func
 from app.database import Base
 
 if TYPE_CHECKING:
+    from app.models.chunk import Chunk
     from app.models.project_doc import ProjectDoc
 
 
@@ -40,6 +41,9 @@ class Document(Base):
 
     # Relationships
     project_doc: Mapped["ProjectDoc"] = relationship(back_populates="documents")
+    chunks: Mapped[List["Chunk"]] = relationship(
+        back_populates="document", cascade="all, delete-orphan"
+    )
 
     # Unique constraint
     __table_args__ = (
