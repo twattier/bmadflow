@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     backend_port: int = 8000
     cors_origins: str = "http://localhost:3000"
     log_level: str = "INFO"
+    ollama_endpoint_url: str = "http://localhost:11434"
+    embedding_batch_size: int = 10
 
     model_config = {
         "env_file": str(PROJECT_ROOT / ".env"),

@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import documents, health, hello
 from app.config import settings
 from app.routers import project_docs, projects
+from app.services.embedding_service import EmbeddingService
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,20 @@ async def startup_validation():
         )
     else:
         logger.info("GitHub API: Authenticated mode (5000 requests/hour)")
+
+    # Ollama validation
+    try:
+        embedding_service = EmbeddingService(settings.ollama_endpoint_url)
+        await embedding_service.validate_connection()
+        await embedding_service.validate_model("nomic-embed-text")
+        logger.info("Ollama validation successful")
+    except ConnectionError as e:
+        logger.error(f"Ollama not available: {e}")
+        raise
+    except ValueError as e:
+        logger.error(f"Model not found: {e}")
+        logger.info("Run: ollama pull nomic-embed-text")
+        raise
 
 
 @app.get("/")

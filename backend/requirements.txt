@@ -8,3 +8,5 @@ pydantic-settings>=2.0.0
 python-dotenv>=1.0.0
 pyyaml
 docling>=1.0.0
+ollama>=0.1.0
+tenacity>=8.0.0
