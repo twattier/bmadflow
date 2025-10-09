@@ -867,11 +867,12 @@ risk_summary:
 ## Definition of Done
 
 ### Must Complete (All P0)
-- [ ] **Story 4.1**: Docling integrated, chunking all file types (MD, CSV, YAML, JSON)
-  - [ ] 6+ unit tests passing
-  - [ ] 3+ integration tests passing
-  - [ ] QA gate: PASS (score 90+)
-  - [ ] Code quality: Black/Ruff clean
+- [x] **Story 4.1**: Docling integrated, chunking all file types (MD, CSV, YAML, JSON) ✅
+  - [x] 10 unit tests passing (exceeds 6+ requirement)
+  - [x] 5 integration tests passing (exceeds 3+ requirement)
+  - [x] QA gate: PASS (score 95/100)
+  - [x] Code quality: Black/Ruff clean
+  - **Status**: Done | **Completed**: 2025-10-09
 
 - [ ] **Story 4.2**: Ollama embeddings working with nomic-embed-text
   - [ ] Startup validation implemented (connection + model check)
