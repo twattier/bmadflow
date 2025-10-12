@@ -1,6 +1,7 @@
 """Pytest configuration and fixtures for tests."""
 
 import pytest_asyncio
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -20,6 +21,14 @@ async def db_session():
     # Create async engine
     engine = create_async_engine(settings.database_url, echo=False)
 
+    # Clean up any leftover test data before starting
+    async with engine.begin() as conn:
+        # Truncate all tables in reverse dependency order to avoid FK violations
+        await conn.execute(text("TRUNCATE TABLE chunks CASCADE"))
+        await conn.execute(text("TRUNCATE TABLE documents CASCADE"))
+        await conn.execute(text("TRUNCATE TABLE project_docs CASCADE"))
+        await conn.execute(text("TRUNCATE TABLE projects CASCADE"))
+
     # Create async session factory
     async_session_factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
@@ -31,12 +40,27 @@ async def db_session():
         # Create a session bound to this connection
         async with async_session_factory(bind=connection) as session:
             # Mock commit to call flush instead (keeps transaction open)
-            original_commit = session.commit
-
             async def mock_commit():
                 await session.flush()
 
+            # Replace the commit method
             session.commit = mock_commit
+
+            # Also ensure savepoint-based transactions work properly
+            # by mocking begin_nested to return a context manager that doesn't commit
+            original_begin_nested = session.begin_nested
+
+            def mock_begin_nested():
+                class MockNested:
+                    async def __aenter__(self):
+                        return self
+
+                    async def __aexit__(self, *args):
+                        pass
+
+                return MockNested()
+
+            session.begin_nested = mock_begin_nested
 
             # Yield the session for the test
             yield session

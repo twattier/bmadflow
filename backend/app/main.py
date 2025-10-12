@@ -56,14 +56,14 @@ async def startup_validation():
     try:
         embedding_service = EmbeddingService(settings.ollama_endpoint_url)
         await embedding_service.validate_connection()
-        await embedding_service.validate_model("nomic-embed-text")
-        logger.info("Ollama validation successful")
+        await embedding_service.validate_model(settings.embedding_model_name)
+        logger.info(f"Ollama validation successful: {settings.embedding_model_name}")
     except ConnectionError as e:
         logger.error(f"Ollama not available: {e}")
         raise
     except ValueError as e:
         logger.error(f"Model not found: {e}")
-        logger.info("Run: ollama pull nomic-embed-text")
+        logger.info(f"Run: ollama pull {settings.embedding_model_name}")
         raise
 
 

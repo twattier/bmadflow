@@ -14,16 +14,17 @@ logger = logging.getLogger(__name__)
 class EmbeddingService:
     """Service for generating embeddings using Ollama."""
 
-    def __init__(self, ollama_endpoint: str = None, batch_size: int = None):
+    def __init__(self, ollama_endpoint: str = None, batch_size: int = None, model_name: str = None):
         """Initialize embedding service.
 
         Args:
             ollama_endpoint: Ollama API endpoint URL
             batch_size: Number of texts to process per batch
+            model_name: Embedding model name (default from settings)
         """
         self.ollama_endpoint = ollama_endpoint or settings.ollama_endpoint_url
         self.batch_size = batch_size or settings.embedding_batch_size
-        self.model_name = "nomic-embed-text"
+        self.model_name = model_name or settings.embedding_model_name
         self.embedding_dim = 768
 
         # Configure Ollama client
@@ -61,24 +62,34 @@ class EmbeddingService:
         try:
             models_response = ollama.list()
 
-            # Handle different response formats
-            if isinstance(models_response, dict):
+            # Handle different response formats (dict, Pydantic object, or list)
+            if hasattr(models_response, "models"):
+                # Pydantic response object (ollama-python >= 0.2.0)
+                models_list = models_response.models
+            elif isinstance(models_response, dict):
+                # Dict response (older versions)
                 models_list = models_response.get("models", [])
             else:
+                # List response
                 models_list = models_response if isinstance(models_response, list) else []
 
-            # Extract model names, handling both dict and string formats
+            # Extract model names, handling different object types
             available_models = []
             for model in models_list:
-                if isinstance(model, dict):
+                if hasattr(model, "model"):
+                    # Pydantic Model object
+                    available_models.append(model.model)
+                elif isinstance(model, dict):
+                    # Dict format
                     available_models.append(model.get("name", model.get("model", "")))
                 else:
+                    # String format
                     available_models.append(str(model))
 
             # Check if model exists (handle version suffixes like :latest)
             model_exists = any(
-                model_name in model or model.startswith(f"{model_name}:")
-                for model in available_models
+                model_name in model_str or model_str.startswith(f"{model_name}:")
+                for model_str in available_models
             )
 
             if not model_exists:

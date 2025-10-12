@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     log_level: str = "INFO"
     ollama_endpoint_url: str = "http://localhost:11434"
+    embedding_model_name: str = "nomic-embed-text"
     embedding_batch_size: int = 10
 
     model_config = {

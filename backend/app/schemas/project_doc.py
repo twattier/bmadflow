@@ -79,6 +79,7 @@ class SyncResult(BaseModel):
 
     success: bool = Field(..., description="Whether sync completed successfully")
     files_synced: int = Field(..., ge=0, description="Number of files successfully synced")
+    embeddings_created: int = Field(default=0, ge=0, description="Number of embeddings created")
     files_failed: int = Field(..., ge=0, description="Number of files that failed to sync")
     errors: List[str] = Field(default_factory=list, description="List of error messages")
     duration_seconds: float = Field(..., ge=0, description="Duration of sync operation in seconds")
