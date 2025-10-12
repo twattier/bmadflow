@@ -7,7 +7,8 @@ HuggingFace tokenization for optimal RAG performance.
 import logging
 from typing import List
 
-from app.schemas.chunk import ChunkResponse
+from app.schemas.chunk import ChunkProcessed
+from app.utils.markdown_parser import extract_headers, find_nearest_header
 
 logger = logging.getLogger(__name__)
 
@@ -52,17 +53,18 @@ class DoclingService:
             logger.error(f"Failed to import Docling dependencies: {e}")
             raise RuntimeError("Docling is not installed. Install with: pip install docling") from e
 
-    async def process_markdown(self, content: str) -> List[ChunkResponse]:
-        """Process markdown content into chunks.
+    async def process_markdown(self, content: str) -> List[ChunkProcessed]:
+        """Process markdown content into chunks with header anchor extraction.
 
-        Loads markdown content, chunks using HybridChunker, and extracts
-        metadata including headers and position information.
+        Loads markdown content, extracts H1-H3 headers, chunks using HybridChunker,
+        and associates each chunk with its nearest preceding header anchor for
+        precise document navigation.
 
         Args:
             content: Raw markdown content as string
 
         Returns:
-            List of ChunkResponse objects with text, index, and metadata
+            List of ChunkProcessed objects with text, index, metadata, and header_anchor
 
         Raises:
             ValueError: If content is empty or invalid
@@ -73,6 +75,10 @@ class DoclingService:
         try:
             from docling.datamodel.base_models import InputFormat
             from docling.document_converter import DocumentConverter
+
+            # Extract headers before chunking for anchor generation
+            headers = extract_headers(content)
+            logger.info(f"Extracted {len(headers)} headers from markdown content")
 
             # Convert markdown to Docling document
             converter = DocumentConverter()
@@ -86,20 +92,43 @@ class DoclingService:
 
             logger.info(f"Generated {len(chunks)} chunks from markdown content")
 
-            # Convert to ChunkResponse objects
+            # Convert to ChunkProcessed objects with header anchors
             chunk_responses = []
             for idx, chunk in enumerate(chunks):
+                # Determine chunk position in document
+                # Try to get position from Docling metadata first
+                chunk_position = 0
+                if (
+                    chunk.meta.doc_items
+                    and chunk.meta.doc_items[0].prov
+                    and hasattr(chunk.meta.doc_items[0].prov[0], "charspan")
+                ):
+                    chunk_position = chunk.meta.doc_items[0].prov[0].charspan.start
+                else:
+                    # Fallback: Find position by searching for chunk text in original content
+                    # Use first 50 chars of chunk text to find position
+                    search_text = chunk.text[:50].strip()
+                    if search_text:
+                        pos = content.find(search_text)
+                        if pos != -1:
+                            chunk_position = pos
+
+                # Find nearest preceding header anchor
+                header_anchor = find_nearest_header(chunk_position, headers)
+
+                if header_anchor:
+                    logger.debug(
+                        f"Chunk {idx} at position {chunk_position} → anchor: {header_anchor}"
+                    )
+
                 chunk_responses.append(
-                    ChunkResponse(
+                    ChunkProcessed(
                         text=chunk.text,
                         index=idx,
+                        header_anchor=header_anchor,  # Add header anchor field
                         metadata={
                             "file_type": "md",
-                            "position": (
-                                chunk.meta.doc_items[0].prov[0].charspan.start
-                                if chunk.meta.doc_items and chunk.meta.doc_items[0].prov
-                                else 0
-                            ),
+                            "position": chunk_position,
                             "total_chunks": len(chunks),
                             "headers": (
                                 [
@@ -108,6 +137,7 @@ class DoclingService:
                                     if hasattr(item, "label")
                                 ]
                                 if hasattr(chunk.meta, "headings")
+                                and chunk.meta.headings is not None
                                 else []
                             ),
                         },
@@ -120,7 +150,7 @@ class DoclingService:
             logger.error(f"Error processing markdown content: {e}")
             raise
 
-    async def process_csv(self, content: str) -> List[ChunkResponse]:
+    async def process_csv(self, content: str) -> List[ChunkProcessed]:
         """Process CSV content into chunks.
 
         Parses CSV with Docling and chunks by rows or logical groups,
@@ -130,7 +160,7 @@ class DoclingService:
             content: Raw CSV content as string
 
         Returns:
-            List of ChunkResponse objects with text, index, and metadata
+            List of ChunkProcessed objects with text, index, and metadata
 
         Raises:
             ValueError: If content is empty or invalid CSV format
@@ -157,9 +187,10 @@ class DoclingService:
             chunk_responses = []
             for idx, chunk in enumerate(chunks):
                 chunk_responses.append(
-                    ChunkResponse(
+                    ChunkProcessed(
                         text=chunk.text,
                         index=idx,
+                        header_anchor=None,  # CSV files don't have markdown headers
                         metadata={
                             "file_type": "csv",
                             "position": (
@@ -178,7 +209,7 @@ class DoclingService:
             logger.error(f"Error processing CSV content: {e}")
             raise
 
-    async def process_yaml_json(self, content: str, file_type: str) -> List[ChunkResponse]:
+    async def process_yaml_json(self, content: str, file_type: str) -> List[ChunkProcessed]:
         """Process YAML or JSON content into chunks.
 
         Parses structured data with Docling and chunks by structural elements
@@ -189,7 +220,7 @@ class DoclingService:
             file_type: File extension ('yaml', 'yml', or 'json')
 
         Returns:
-            List of ChunkResponse objects with text, index, and metadata
+            List of ChunkProcessed objects with text, index, and metadata
 
         Raises:
             ValueError: If content is empty, file_type unsupported, or invalid format
@@ -221,9 +252,10 @@ class DoclingService:
             chunk_responses = []
             for idx, chunk in enumerate(chunks):
                 chunk_responses.append(
-                    ChunkResponse(
+                    ChunkProcessed(
                         text=chunk.text,
                         index=idx,
+                        header_anchor=None,  # YAML/JSON files don't have markdown headers
                         metadata={
                             "file_type": file_type,
                             "position": (

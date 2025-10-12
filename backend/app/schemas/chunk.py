@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -52,8 +52,21 @@ class ChunkCreate(BaseModel):
         return v
 
 
+class ChunkProcessed(BaseModel):
+    """Schema for chunks processed by DoclingService (before storage).
+
+    Used as intermediate representation between document processing
+    and database storage. Does not include database fields like id, created_at.
+    """
+
+    text: str = Field(..., min_length=1)
+    index: int = Field(..., ge=0)
+    header_anchor: Optional[str] = Field(None, max_length=512)
+    metadata: Optional[Dict] = None
+
+
 class ChunkResponse(BaseModel):
-    """Response model for chunk data.
+    """Response model for chunk data from database.
 
     Note: Embedding not included in response (too large for API).
     """

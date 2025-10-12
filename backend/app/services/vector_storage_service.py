@@ -77,7 +77,15 @@ class VectorStorageService:
         )
 
         chunk = await self.chunk_repo.create_chunk(chunk_data)
-        logger.info(f"Stored chunk {chunk.id} with embedding (dim={len(embedding)})")
+
+        if header_anchor:
+            logger.info(
+                f"Stored chunk {chunk.id} with embedding (dim={len(embedding)}) "
+                f"and header anchor: {header_anchor}"
+            )
+        else:
+            logger.info(f"Stored chunk {chunk.id} with embedding (dim={len(embedding)})")
+
         return chunk
 
     async def store_chunks_batch(self, chunks_data: List[dict]) -> List[Chunk]:
