@@ -1,7 +1,7 @@
 """Chunk repository for data access."""
 
 import logging
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -101,3 +101,49 @@ class ChunkRepository:
             .where(ProjectDoc.project_id == project_id)
         )
         return result.scalar() or 0
+
+    async def similarity_search(
+        self, query_embedding: List[float], project_id: UUID, limit: int = 5
+    ) -> List[Tuple[Chunk, float]]:
+        """Perform pgvector cosine similarity search.
+
+        Uses HNSW index on chunks.embedding column for fast similarity search.
+        Results are filtered to the specified project to ensure data isolation.
+
+        Args:
+            query_embedding: Query vector (768 dimensions from nomic-embed-text)
+            project_id: Filter results to this project only
+            limit: Maximum number of results (default 5, max 20)
+
+        Returns:
+            List of (Chunk, similarity_score) tuples sorted by relevance (highest first).
+            similarity_score ranges from 0.0 (no similarity) to 1.0 (identical).
+
+        Raises:
+            ValueError: If limit < 1 or limit > 20
+            DatabaseError: If database query fails
+        """
+        if limit < 1 or limit > 20:
+            raise ValueError("limit must be between 1 and 20")
+
+        # pgvector cosine distance query
+        # cosine_distance returns values where lower = more similar
+        # Convert to similarity: similarity_score = 1 - distance
+        query = (
+            select(
+                Chunk,
+                (1 - Chunk.embedding.cosine_distance(query_embedding)).label("similarity"),
+            )
+            .join(Document, Chunk.document_id == Document.id)
+            .join(ProjectDoc, Document.project_doc_id == ProjectDoc.id)
+            .where(ProjectDoc.project_id == project_id)
+            .order_by(Chunk.embedding.cosine_distance(query_embedding))
+            .limit(limit)
+        )
+
+        result = await self.db.execute(query)
+        rows = result.all()
+
+        logger.info(f"Vector search: found {len(rows)} results for project {project_id}")
+
+        return [(row.Chunk, row.similarity) for row in rows]

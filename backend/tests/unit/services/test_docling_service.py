@@ -1,6 +1,5 @@
 """Unit tests for DoclingService."""
 
-
 import pytest
 
 from app.schemas.chunk import ChunkProcessed
