@@ -7,7 +7,9 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
+from app.repositories.chunk_repository import ChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.project_doc import ProjectDocRepository
 from app.schemas.project_doc import (
@@ -16,7 +18,9 @@ from app.schemas.project_doc import (
     ProjectDocUpdate,
     SyncStatusResponse,
 )
+from app.services.docling_service import DoclingService
 from app.services.document_service import DocumentService
+from app.services.embedding_service import EmbeddingService
 from app.services.github_service import GitHubService
 from app.services.project_doc_service import ProjectDocService
 
@@ -116,7 +120,17 @@ async def sync_project_doc(
     github_service = GitHubService()
     document_repo = DocumentRepository(db)
     document_service = DocumentService(document_repo)
-    service = ProjectDocService(repo, github_service, document_service)
+    docling_service = DoclingService()
+    embedding_service = EmbeddingService(settings.ollama_endpoint_url)
+    chunk_repository = ChunkRepository(db)
+    service = ProjectDocService(
+        repo,
+        github_service,
+        document_service,
+        docling_service,
+        embedding_service,
+        chunk_repository,
+    )
 
     # Execute sync in background (fire-and-forget pattern for POC)
     background_tasks.add_task(service.sync_project_doc, db, id)

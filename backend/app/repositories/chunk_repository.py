@@ -45,11 +45,14 @@ class ChunkRepository:
         logger.info(f"Created chunk {chunk.id} for document {chunk.document_id}")
         return chunk
 
-    async def create_chunks_batch(self, chunks: List[ChunkCreate]) -> List[Chunk]:
+    async def create_chunks_batch(
+        self, chunks: List[ChunkCreate], auto_commit: bool = True
+    ) -> List[Chunk]:
         """Bulk insert chunks for performance.
 
         Args:
             chunks: List of chunk creation data
+            auto_commit: Whether to commit automatically (default True for backward compatibility)
 
         Returns:
             List of created chunk instances
@@ -59,10 +62,11 @@ class ChunkRepository:
         """
         chunk_objs = [Chunk(**chunk.model_dump()) for chunk in chunks]
         self.db.add_all(chunk_objs)
-        await self.db.commit()
-        # Refresh all chunks to load their metadata from the database
-        for chunk in chunk_objs:
-            await self.db.refresh(chunk)
+        if auto_commit:
+            await self.db.commit()
+            # Refresh all chunks to load their metadata from the database
+            for chunk in chunk_objs:
+                await self.db.refresh(chunk)
         logger.info(f"Created {len(chunk_objs)} chunks in batch")
         return chunk_objs
 
