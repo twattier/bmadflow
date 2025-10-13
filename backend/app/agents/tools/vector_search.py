@@ -67,12 +67,17 @@ class VectorSearchTool(BaseModel):
         chunk_results = []
         for chunk, similarity in results:
             if similarity >= self.similarity_threshold:
+                # Extract file_path from chunk_metadata dict
+                file_path = ""
+                if chunk.chunk_metadata and isinstance(chunk.chunk_metadata, dict):
+                    file_path = chunk.chunk_metadata.get("file_path", "")
+
                 chunk_results.append(
                     ChunkResult(
                         chunk_id=chunk.id,
                         document_id=chunk.document_id,
                         chunk_text=chunk.chunk_text,
-                        file_path=chunk.metadata.get("file_path", ""),
+                        file_path=file_path,
                         header_anchor=chunk.header_anchor,
                         similarity_score=round(similarity, 4),
                         chunk_index=chunk.chunk_index,

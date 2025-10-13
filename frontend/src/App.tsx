@@ -6,6 +6,7 @@ import { Dashboard } from '@/pages/Dashboard';
 import { Projects } from '@/pages/Projects';
 import { ProjectOverview } from '@/pages/ProjectOverview';
 import { DocumentationExplorer } from '@/pages/DocumentationExplorer';
+import { Chat } from '@/pages/Chat';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:projectId" element={<ProjectOverview />} />
             <Route path="/projects/:projectId/explorer" element={<DocumentationExplorer />} />
+            <Route path="/projects/:projectId/chat" element={<Chat />} />
           </Routes>
         </AppShell>
         <Toaster />

@@ -1,4 +1,4 @@
-export interface FileNode {
+export type FileNode = {
   id: string;
   name: string;
   type: 'file' | 'folder';
@@ -6,14 +6,14 @@ export interface FileNode {
   file_type?: string; // e.g., 'md', 'csv', 'yaml'
   size?: number;
   children?: FileNode[];
-}
+};
 
-export interface FileTreeResponse {
+export type FileTreeResponse = {
   project_id: string;
   tree: FileNode[];
-}
+};
 
-export interface Document {
+export type Document = {
   id: string;
   project_doc_id: string;
   file_path: string;
@@ -23,4 +23,4 @@ export interface Document {
   doc_metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
-}
+};
