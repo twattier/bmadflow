@@ -1,16 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import type { MessageResponse } from '@/api/types/message';
+import type { MessageResponse, SourceDocument } from '@/api/types/message';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { ChatMessageRenderer } from './ChatMessageRenderer';
+import { MessageSourceLinks } from './MessageSourceLinks';
 
 interface MessageListProps {
   messages: MessageResponse[];
   isLoading: boolean;
+  onSourceClick?: (source: SourceDocument) => void;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({ messages, isLoading, onSourceClick }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -39,7 +41,12 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
               {message.role === 'user' ? (
                 <p className="whitespace-pre-wrap">{message.content}</p>
               ) : (
-                <ChatMessageRenderer content={message.content} />
+                <>
+                  <ChatMessageRenderer content={message.content} />
+                  {message.sources && message.sources.length > 0 && onSourceClick && (
+                    <MessageSourceLinks sources={message.sources} onSourceClick={onSourceClick} />
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

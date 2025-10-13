@@ -12,6 +12,8 @@ export type MessageResponse = {
   created_at: string;
 };
 
+export type SourceDocument = NonNullable<MessageResponse['sources']>[number];
+
 export type MessageCreate = {
   content: string;
 };

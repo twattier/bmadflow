@@ -61,3 +61,18 @@ html {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @keyframes highlight-fade {
+    0% {
+      background-color: rgba(255, 255, 0, 0.3);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  .highlight-fade {
+    animation: highlight-fade 2s ease-out forwards;
+  }
+}

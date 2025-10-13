@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { LLMProviderSelector } from '@/features/chat/LLMProviderSelector';
 import { MessageInput } from '@/features/chat/MessageInput';
 import { MessageList } from '@/features/chat/MessageList';
+import { SourcePanel } from '@/features/chat/SourcePanel';
 import { Button } from '@/components/ui/button';
 import { useDefaultProvider } from '@/api/hooks/useLLMProviders';
 import { useCreateConversation, useConversation } from '@/api/hooks/useConversations';
 import { useSendMessage } from '@/api/hooks/useMessages';
 import { MessageSquare } from 'lucide-react';
+import type { SourceDocument } from '@/api/types/message';
 
 export function Chat() {
   const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
   const [selectedProviderId, setSelectedProviderId] = useState<string | undefined>();
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [currentSource, setCurrentSource] = useState<SourceDocument | null>(null);
+  const [previousSource, setPreviousSource] = useState<SourceDocument | null>(null);
 
   const { data: defaultProvider } = useDefaultProvider();
   const { data: conversation, isLoading: isLoadingConversation } = useConversation(conversationId);
@@ -56,6 +61,27 @@ export function Chat() {
     }
   };
 
+  const handleSourceClick = (source: SourceDocument) => {
+    setPreviousSource(currentSource);
+    setCurrentSource(source);
+  };
+
+  const handleCloseSourcePanel = () => {
+    setCurrentSource(null);
+    setPreviousSource(null);
+  };
+
+  const handleOpenInExplorer = (filePath: string) => {
+    navigate(`/projects/${projectId}/explorer?file=${encodeURIComponent(filePath)}`);
+  };
+
+  const handleNavigateToPrevious = () => {
+    if (previousSource) {
+      setCurrentSource(previousSource);
+      setPreviousSource(null);
+    }
+  };
+
   // New conversation state - show provider selector and start button
   if (!conversationId) {
     return (
@@ -96,16 +122,29 @@ export function Chat() {
 
   // Conversation started - show messages and input
   return (
-    <div className="flex flex-col h-full">
-      <MessageList
-        messages={conversation?.messages || []}
-        isLoading={sendMessage.isPending}
-      />
-      <MessageInput
-        onSendMessage={handleSendMessage}
-        disabled={!conversationId || isLoadingConversation}
-        isLoading={sendMessage.isPending}
-      />
+    <div className="flex h-full">
+      <div className={`flex flex-col ${currentSource ? 'w-full md:w-3/5' : 'w-full'} transition-all duration-300`}>
+        <MessageList
+          messages={conversation?.messages || []}
+          isLoading={sendMessage.isPending}
+          onSourceClick={handleSourceClick}
+        />
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          disabled={!conversationId || isLoadingConversation}
+          isLoading={sendMessage.isPending}
+        />
+      </div>
+
+      {currentSource && (
+        <SourcePanel
+          source={currentSource}
+          onClose={handleCloseSourcePanel}
+          onOpenInExplorer={handleOpenInExplorer}
+          previousSource={previousSource}
+          onNavigateToPrevious={previousSource ? handleNavigateToPrevious : undefined}
+        />
+      )}
     </div>
   );
 }

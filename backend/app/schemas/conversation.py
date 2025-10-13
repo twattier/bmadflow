@@ -1,7 +1,7 @@
 """Pydantic schemas for Conversation API."""
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,7 +36,7 @@ class MessageResponse(BaseModel):
     conversation_id: UUID
     role: str
     content: str
-    sources: Optional[List[dict]] = None
+    sources: Optional[List[Dict[str, Any]]] = None
     created_at: datetime
 
 

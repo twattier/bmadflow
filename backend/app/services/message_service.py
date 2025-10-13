@@ -96,11 +96,14 @@ class MessageService:
                 {
                     "document_id": str(source.document_id),
                     "file_path": source.file_path,
+                    "file_name": source.file_path.split("/")[-1] if source.file_path else "unknown",
                     "header_anchor": source.header_anchor,
                     "similarity_score": source.similarity_score,
                 }
                 for source in rag_response.sources
             ]
+
+            logger.info(f"Saving sources_json to database: {sources_json}")
 
             # Step 5: Create assistant message with sources
             assistant_message = await self.message_repo.create(
@@ -110,9 +113,9 @@ class MessageService:
                 content=rag_response.response_text,
                 sources=sources_json,
             )
-            logger.debug(
+            logger.info(
                 f"Created assistant message {assistant_message.id} with "
-                f"{len(sources_json)} sources"
+                f"{len(sources_json)} sources. Retrieved sources from DB: {assistant_message.sources}"
             )
 
             # Step 6: Update conversation timestamp

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.chunk import Chunk
 from app.models.document import Document
@@ -139,6 +140,7 @@ class ChunkRepository:
             .where(ProjectDoc.project_id == project_id)
             .order_by(Chunk.embedding.cosine_distance(query_embedding))
             .limit(limit)
+            .options(selectinload(Chunk.document))
         )
 
         result = await self.db.execute(query)
