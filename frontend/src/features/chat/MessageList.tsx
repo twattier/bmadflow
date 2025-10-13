@@ -63,15 +63,9 @@ export function MessageList({ messages, isLoading, onSourceClick }: MessageListP
                   <span className="text-sm text-muted-foreground animate-pulse">
                     Generating response
                   </span>
-                  <span className="text-sm text-muted-foreground animate-pulse delay-75">
-                    .
-                  </span>
-                  <span className="text-sm text-muted-foreground animate-pulse delay-150">
-                    .
-                  </span>
-                  <span className="text-sm text-muted-foreground animate-pulse delay-300">
-                    .
-                  </span>
+                  <span className="text-sm text-muted-foreground animate-pulse delay-75">.</span>
+                  <span className="text-sm text-muted-foreground animate-pulse delay-150">.</span>
+                  <span className="text-sm text-muted-foreground animate-pulse delay-300">.</span>
                 </div>
               </div>
             </CardContent>

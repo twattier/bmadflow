@@ -50,7 +50,8 @@ export function ChatMessageRenderer({ content, className }: ChatMessageRendererP
                   }}
                   codeTagProps={{
                     style: {
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                      fontFamily:
+                        'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                     },
                   }}
                 >

@@ -12,6 +12,11 @@ export type ConversationResponse = {
   title: string;
   created_at: string;
   updated_at: string;
+  llm_provider?: {
+    id: string;
+    provider_name: string;
+    model_name: string;
+  };
 };
 
 export type ConversationWithMessages = ConversationResponse & {

@@ -118,12 +118,7 @@ export function SourcePanel({
             </div>
           )}
 
-          {document && (
-            <MarkdownRenderer
-              content={document.content}
-              className="prose-sm"
-            />
-          )}
+          {document && <MarkdownRenderer content={document.content} className="prose-sm" />}
         </div>
 
         <SheetFooter className="p-4 border-t">

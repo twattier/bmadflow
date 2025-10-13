@@ -1,6 +1,5 @@
 """Repository layer for Conversation data access."""
 
-from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
@@ -26,14 +25,14 @@ class ConversationRepository:
             title: Conversation title
 
         Returns:
-            Created conversation instance
+            Created conversation instance with LLM provider data
         """
         conversation = Conversation(
             project_id=project_id, llm_provider_id=llm_provider_id, title=title
         )
         db.add(conversation)
         await db.commit()
-        await db.refresh(conversation)
+        await db.refresh(conversation, ["llm_provider"])
         return conversation
 
     async def get_by_id(self, db: AsyncSession, conversation_id: UUID) -> Optional[Conversation]:
@@ -64,11 +63,12 @@ class ConversationRepository:
             limit: Maximum number of conversations to return (default 10)
 
         Returns:
-            List of conversations ordered by updated_at DESC
+            List of conversations ordered by updated_at DESC with LLM provider data
         """
         result = await db.execute(
             select(Conversation)
             .where(Conversation.project_id == project_id)
+            .options(selectinload(Conversation.llm_provider))
             .order_by(Conversation.updated_at.desc())
             .limit(limit)
         )
@@ -99,5 +99,18 @@ class ConversationRepository:
             update(Conversation)
             .where(Conversation.id == conversation_id)
             .values(updated_at=func.now())
+        )
+        await db.commit()
+
+    async def update_title(self, db: AsyncSession, conversation_id: UUID, title: str) -> None:
+        """Update conversation title.
+
+        Args:
+            db: Database session
+            conversation_id: Conversation UUID
+            title: New conversation title
+        """
+        await db.execute(
+            update(Conversation).where(Conversation.id == conversation_id).values(title=title)
         )
         await db.commit()
