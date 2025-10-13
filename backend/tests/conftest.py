@@ -1,11 +1,26 @@
 """Pytest configuration and fixtures for tests."""
 
+import os
 import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
+
+
+# Override database URL for tests to use separate test database
+# Parse the production URL and replace only the database name (not username)
+def get_test_database_url():
+    """Generate test database URL by replacing database name in production URL."""
+    prod_url = settings.database_url
+    # Replace only the database name at the END of the URL (after the last /)
+    if prod_url.endswith("/bmadflow"):
+        return prod_url[:-9] + "/bmadflow_test"
+    # Fallback: construct test URL manually
+    return "postgresql+asyncpg://bmadflow:changeme_in_production@localhost:5434/bmadflow_test"
+
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", get_test_database_url())
 
 
 @pytest_asyncio.fixture
@@ -15,11 +30,13 @@ async def db_session():
     Each test runs in a transaction that is rolled back after the test completes,
     ensuring test isolation and preventing test data accumulation.
 
+    Uses a separate test database (bmadflow_test) to avoid affecting production data.
+
     Note: session.commit() is mocked to call flush() instead, preventing
     transaction closure while still updating the session state for tests.
     """
-    # Create async engine
-    engine = create_async_engine(settings.database_url, echo=False)
+    # Create async engine using TEST database
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
     # Clean up any leftover test data before starting
     async with engine.begin() as conn:
@@ -28,6 +45,7 @@ async def db_session():
         await conn.execute(text("TRUNCATE TABLE documents CASCADE"))
         await conn.execute(text("TRUNCATE TABLE project_docs CASCADE"))
         await conn.execute(text("TRUNCATE TABLE projects CASCADE"))
+        await conn.execute(text("TRUNCATE TABLE llm_providers CASCADE"))
 
     # Create async session factory
     async_session_factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

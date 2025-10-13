@@ -1,6 +1,7 @@
 """Pytest configuration for integration tests."""
 
 import asyncio
+import os
 from typing import AsyncGenerator
 
 import pytest
@@ -10,6 +11,24 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
 from app.database import Base
+
+
+def get_test_database_url():
+    """Generate test database URL by replacing database name in production URL.
+
+    This ensures integration tests NEVER touch the production 'bmadflow' database.
+    All tests use the separate 'bmadflow_test' database.
+    """
+    prod_url = settings.database_url
+    # Replace only the database name at the END of the URL (after the last /)
+    if prod_url.endswith("/bmadflow"):
+        return prod_url[:-9] + "/bmadflow_test"
+    # Fallback: construct test URL manually
+    return "postgresql+asyncpg://bmadflow:changeme_in_production@localhost:5434/bmadflow_test"
+
+
+# Use environment variable or generate test database URL
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", get_test_database_url())
 
 
 @pytest.fixture(scope="session")
@@ -25,10 +44,11 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Provide async database session with automatic cleanup after test.
 
-    Uses real database connection and cleans up all test data after each test.
+    SAFETY: Uses separate TEST database (bmadflow_test) to avoid affecting production data.
+    The production 'bmadflow' database is never touched by integration tests.
     """
-    # Create async engine
-    engine = create_async_engine(settings.database_url, echo=False)
+    # Create async engine using TEST DATABASE
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
     # Create session factory
     async_session_factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

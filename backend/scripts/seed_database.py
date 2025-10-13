@@ -25,8 +25,6 @@ load_dotenv(project_root / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config import settings
-from app.models.project import Project
-from app.models.project_doc import ProjectDoc
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.project import ProjectRepository
 from app.repositories.project_doc import ProjectDocRepository
@@ -226,7 +224,7 @@ async def seed_from_yaml(yaml_file: Path, skip_sync: bool = False, clear_first: 
                                 for error in sync_result.errors[:3]:  # Show first 3 errors
                                     logger.warning(f"    - {error}")
                         else:
-                            logger.error(f"  ✗ Sync failed!")
+                            logger.error("  ✗ Sync failed!")
                             for error in sync_result.errors:
                                 logger.error(f"    - {error}")
 
