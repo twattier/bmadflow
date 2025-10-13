@@ -356,19 +356,237 @@ chore(deps): upgrade FastAPI to 0.110.0
 
 ---
 
+## Backend-Frontend Type Alignment
+
+**Pattern Discovered**: Epic 5 Story 5.5 (backend missing `file_name` field caused frontend type mismatch)
+
+### 🎯 Critical Pattern: Explicit Field Serialization
+
+**Why This Matters:**
+- **Problem**: Backend Pydantic schemas missing fields → frontend derives from other fields (fragile, error-prone)
+- **Solution**: Backend must explicitly serialize ALL fields frontend expects in Pydantic response schemas
+- **Impact**: Prevents integration test failures, reduces defensive coding, improves type safety
+
+**Example Issue from Epic 5:**
+
+```python
+# ❌ BAD: Backend missing file_name field
+class MessageResponse(BaseModel):
+    id: UUID
+    conversation_id: UUID
+    role: str
+    content: str
+    sources: Optional[List[Dict[str, Any]]] = None  # ← Missing explicit typing
+    created_at: datetime
+
+# Backend serialization (incomplete)
+sources_json = [
+    {
+        "document_id": str(chunk.document_id),
+        "file_path": chunk.file_path,
+        "header_anchor": chunk.header_anchor,
+        "similarity_score": chunk.similarity_score,
+        # ❌ Missing file_name → frontend derives from file_path
+    }
+    for chunk in chunks
+]
+```
+
+```typescript
+// ❌ FRAGILE: Frontend derives file_name from file_path
+interface SourceDocument {
+  document_id: string;
+  file_path: string;
+  file_name: string;  // Expected but not provided by backend
+  header_anchor: string | null;
+  similarity_score: number;
+}
+
+// Defensive fallback logic (fragile)
+const fileName = source.file_name || source.file_path.split('/').pop() || 'unknown';
+```
+
+**Correct Implementation:**
+
+```python
+# ✅ CORRECT: Backend explicitly serializes all fields
+class SourceDocument(BaseModel):
+    """Source document reference in assistant message."""
+    document_id: UUID
+    file_path: str
+    file_name: str  # ← Explicitly included
+    header_anchor: Optional[str] = None
+    similarity_score: float
+
+class MessageResponse(BaseModel):
+    """Message response with typed sources."""
+    id: UUID
+    conversation_id: UUID
+    role: str
+    content: str
+    sources: Optional[List[SourceDocument]] = None  # ← Typed with schema
+    created_at: datetime
+
+# Backend serialization (complete)
+sources_json = [
+    {
+        "document_id": str(chunk.document_id),
+        "file_path": chunk.file_path,
+        "file_name": chunk.file_path.split('/')[-1],  # ← Explicitly calculated
+        "header_anchor": chunk.header_anchor,
+        "similarity_score": chunk.similarity_score,
+    }
+    for chunk in chunks
+]
+```
+
+```typescript
+// ✅ CORRECT: Frontend types match backend schema exactly
+interface SourceDocument {
+  document_id: string;
+  file_path: string;
+  file_name: string;  // ← Backend provides this explicitly
+  header_anchor: string | null;
+  similarity_score: number;
+}
+
+// No defensive fallback needed - backend guarantees field presence
+const fileName = source.file_name;  // Always present
+```
+
+### Best Practices for Type Alignment
+
+#### 1. Backend Pydantic Schemas
+
+**Always create explicit schemas for nested objects:**
+
+```python
+# Good: Explicit nested schema
+class SourceDocument(BaseModel):
+    document_id: UUID
+    file_path: str
+    file_name: str  # Don't assume frontend can derive this
+    header_anchor: Optional[str] = None
+    similarity_score: float
+
+class MessageResponse(BaseModel):
+    sources: Optional[List[SourceDocument]] = None
+
+# Bad: Generic dict (no type contract)
+class MessageResponse(BaseModel):
+    sources: Optional[List[Dict[str, Any]]] = None  # ❌ No type safety
+```
+
+#### 2. Frontend TypeScript Types
+
+**Mirror backend Pydantic schemas exactly:**
+
+```typescript
+// Good: Exact mirror of backend SourceDocument schema
+interface SourceDocument {
+  document_id: string;  // UUID → string
+  file_path: string;
+  file_name: string;
+  header_anchor: string | null;  // Optional[str] → string | null
+  similarity_score: number;  // float → number
+}
+
+// Bad: Frontend adds extra fields backend doesn't provide
+interface SourceDocument {
+  document_id: string;
+  file_path: string;
+  file_name: string;
+  header_anchor: string | null;
+  similarity_score: number;
+  display_name?: string;  // ❌ Not in backend schema → will be undefined
+}
+```
+
+#### 3. Timezone Handling
+
+**Pattern from Epic 5 Story 5.3:**
+
+```python
+# ✅ CORRECT: Use func.now() for server-side timestamps
+from sqlalchemy import func
+
+class Conversation(Base):
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+
+# ❌ INCORRECT: Use datetime.utcnow() (no timezone info)
+from datetime import datetime
+
+class Conversation(Base):
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)  # No TZ
+```
+
+### Automated Validation (Recommended)
+
+**1. Contract Testing (Pact or similar):**
+
+```typescript
+// frontend/tests/api-contracts/message-sources-contract.test.ts
+import { MessageResponse } from '@/api/types/message';
+import { openApiSchema } from '@/generated/openapi-schema';
+
+test('MessageResponse sources field matches OpenAPI schema', () => {
+  const sourceSchema = openApiSchema.components.schemas.MessageResponse.properties.sources.items;
+
+  // Validate required fields present
+  expect(sourceSchema.required).toContain('document_id');
+  expect(sourceSchema.required).toContain('file_path');
+  expect(sourceSchema.required).toContain('file_name');  // ← Would catch missing field
+  expect(sourceSchema.required).toContain('header_anchor');
+  expect(sourceSchema.required).toContain('similarity_score');
+});
+```
+
+**2. Auto-Generated Types (pydantic-to-typescript):**
+
+```bash
+# Generate TypeScript types from Pydantic schemas
+pydantic-to-typescript backend/app/schemas/message.py --output frontend/src/api/types/message.generated.ts
+```
+
+### Code Review Checklist
+
+#### Backend Type Contract
+- [ ] All Pydantic response schemas explicitly define nested objects (no `Dict[str, Any]`)
+- [ ] Backend serializes ALL fields frontend types expect (no assumed derivations)
+- [ ] OpenAPI schema generated and committed (`fastapi` generates this automatically)
+- [ ] Timestamps use `func.now()` for timezone consistency
+
+#### Frontend Type Contract
+- [ ] TypeScript types mirror backend Pydantic schemas exactly
+- [ ] No extra fields in frontend types that backend doesn't provide
+- [ ] UUID fields typed as `string` (not `UUID` - that's a Python type)
+- [ ] Optional fields use `| null` (not `| undefined` - backend sends `null`)
+
+#### Type Alignment Validation
+- [ ] Integration tests mock data includes ALL fields (e.g., `file_name` in sources)
+- [ ] Contract tests validate frontend types match OpenAPI schema (optional but recommended)
+- [ ] No defensive fallback logic for "missing" fields (if needed, backend schema is incomplete)
+
+---
+
 ## Code Review Checklist
 
 ### Backend
 - [ ] Type hints on all functions
 - [ ] Pydantic schemas for request/response
+- [ ] **Explicit schemas for nested objects (no `Dict[str, Any]`)**
+- [ ] **All fields frontend expects explicitly serialized**
 - [ ] Error handling with appropriate HTTP status codes
 - [ ] Unit tests for business logic (70%+ coverage)
 - [ ] No hardcoded credentials
 - [ ] Async/await used correctly
 - [ ] Logging for important operations
+- [ ] **Timestamps use `func.now()` for timezone consistency**
 
 ### Frontend
 - [ ] TypeScript types for props and state
+- [ ] **Frontend types mirror backend Pydantic schemas exactly**
 - [ ] Accessibility attributes (aria-label, semantic HTML)
 - [ ] Loading and error states handled
 - [ ] Component tests with React Testing Library

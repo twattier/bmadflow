@@ -878,6 +878,106 @@ All shadcn/ui components are built on **Radix UI primitives**, which provide:
 - Focus management
 - Screen reader support
 
+### 🎯 Required Accessibility Patterns
+
+**Pattern Discovered**: Epic 5 Stories 5.5 and 5.6 (both required SheetDescription fix during QA)
+
+#### 1. Sheet Component with Description (CRITICAL)
+
+**WCAG 2.1 AA Requirement**: All Radix UI Sheet primitives MUST include `SheetDescription` for screen readers, even if visually hidden.
+
+**Why This Pattern?**
+- **Problem**: Radix UI Sheet emits `aria-describedby` warnings without SheetDescription → accessibility compliance failure
+- **Solution**: Always add SheetDescription with `sr-only` class (screen reader only, visually hidden)
+- **Impact**: Satisfies WCAG 2.1 AA requirements for dialog descriptions
+
+**Implementation:**
+
+```tsx
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetClose,
+} from '@/components/ui/sheet';
+
+// ✅ CORRECT: Sheet with SheetDescription
+export function SourcePanel({ source, onClose }: SourcePanelProps) {
+  return (
+    <Sheet open={!!source} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-2/5">
+        <SheetHeader>
+          <SheetTitle>{source.file_path}</SheetTitle>
+          {/* REQUIRED: SheetDescription with sr-only for screen readers */}
+          <SheetDescription className="sr-only">
+            View document source with content preview
+          </SheetDescription>
+        </SheetHeader>
+        {/* Sheet body content */}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ❌ INCORRECT: Sheet without SheetDescription (accessibility violation)
+export function SourcePanel({ source, onClose }: SourcePanelProps) {
+  return (
+    <Sheet open={!!source} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-2/5">
+        <SheetHeader>
+          <SheetTitle>{source.file_path}</SheetTitle>
+          {/* Missing SheetDescription → aria-describedby warning */}
+        </SheetHeader>
+      </SheetContent>
+    </Sheet>
+  );
+}
+```
+
+**Best Practices:**
+1. **Always include SheetDescription** - even if content seems self-explanatory
+2. **Use descriptive text** - explain what the sheet contains/does ("View conversation history", "Document source preview")
+3. **Apply sr-only class** - visually hide description while keeping it accessible to screen readers
+4. **Test with screen readers** - verify NVDA/JAWS/VoiceOver announce description
+
+**Component Checklist:**
+- [ ] Sheet components include SheetDescription with sr-only class
+- [ ] Form inputs have associated labels (htmlFor / aria-label)
+- [ ] Interactive elements keyboard accessible (Tab, Enter, Escape)
+- [ ] Color contrast meets WCAG 2.1 AA (4.5:1 for text)
+
+#### 2. Dialog Component with Description
+
+**Same pattern applies to Dialog primitives:**
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+
+export function CreateProjectDialog({ isOpen, onClose }: DialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription className="sr-only">
+            Form to create a new project with name and description
+          </DialogDescription>
+        </DialogHeader>
+        {/* Dialog form content */}
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
 ### Custom Accessibility Patterns
 
 **Focus Management:**
@@ -927,6 +1027,34 @@ useEffect(() => {
 **Color Contrast:**
 - shadcn/ui default theme meets WCAG AA standards
 - Tested with Lighthouse and axe DevTools
+
+### Automated Accessibility Testing
+
+**Recommended Tools:**
+- `jest-axe` or `@axe-core/react` for automated a11y checks in component tests
+- Lighthouse CI for accessibility audits in CI/CD pipeline
+- axe DevTools browser extension for manual testing
+
+**Example Component Test with jest-axe:**
+```tsx
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+import { SourcePanel } from '@/features/chat/SourcePanel';
+
+expect.extend(toHaveNoViolations);
+
+test('SourcePanel has no accessibility violations', async () => {
+  const { container } = render(
+    <SourcePanel
+      source={{ document_id: '123', file_path: 'docs/prd.md', header_anchor: null }}
+      onClose={() => {}}
+    />
+  );
+
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+```
 
 ---
 

@@ -96,25 +96,71 @@ pytest tests/unit -v --cov=app --cov-report=html
 
 **Location**: `backend/tests/integration/`
 
-**Example: API Integration Test**
+#### 🔧 FastAPI Dependency Override Pattern (Required)
+
+**CRITICAL**: All integration tests MUST use FastAPI dependency override to inject test database session. This prevents asyncpg connection pool conflicts and ensures tests use the test database (not production).
+
+**Why This Pattern?**
+- **Problem**: FastAPI test client opens separate DB sessions → asyncpg connection pool contention → test failures
+- **Solution**: Override `get_db()` dependency with test session → shared connection → tests pass
+- **Safety**: Prevents accidental production database usage (data loss risk)
+
+**Pattern Discovered**: Epic 5 Stories 5.1 and 5.3 (both required this fix during QA)
+
+**Implementation:**
+
+```python
+# tests/integration/conftest.py
+import pytest
+from app.main import app
+from app.api.deps import get_db
+
+@pytest.fixture
+def override_get_db(db_session):
+    """Apply dependency override for integration tests."""
+    def _override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass  # db_session cleanup handled by fixture
+
+    app.dependency_overrides[get_db] = _override_get_db
+    yield
+    app.dependency_overrides.clear()
+
+@pytest.fixture
+async def client(override_get_db):
+    """FastAPI test client with dependency override applied."""
+    from httpx import AsyncClient
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+```
+
+**Example: API Integration Test (Correct Pattern)**
 ```python
 # tests/integration/api/test_projects_api.py
 import pytest
 from httpx import AsyncClient
-from app.main import app
 
 @pytest.mark.asyncio
-async def test_create_project_endpoint():
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/projects",
-            json={"name": "Test Project", "description": "Test"}
-        )
+async def test_create_project_endpoint(client):  # ← Uses fixture with override
+    response = await client.post(
+        "/api/projects",
+        json={"name": "Test Project", "description": "Test"}
+    )
 
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "Test Project"
     assert "id" in data
+```
+
+**❌ Anti-Pattern (DO NOT USE):**
+```python
+# WRONG: Test client without dependency override
+async with AsyncClient(app=app, base_url="http://test") as client:
+    # This will fail with connection pool errors!
+    response = await client.post(...)
 ```
 
 **Example: GitHub Integration Test (with Mocking)**
