@@ -6,7 +6,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import documents, health, hello, llm_providers, search
+from app.api.v1 import conversations, documents, health, hello, llm_providers, messages, search
 from app.config import settings
 from app.routers import project_docs, projects
 from app.services.embedding_service import EmbeddingService
@@ -35,6 +35,8 @@ app.include_router(hello.router, prefix="/api", tags=["hello"])
 app.include_router(documents.router, prefix="/api", tags=["documents"])
 app.include_router(search.router, prefix="/api", tags=["search"])
 app.include_router(llm_providers.router)
+app.include_router(conversations.router)
+app.include_router(messages.router)
 app.include_router(projects.router)
 app.include_router(project_docs.router)
 

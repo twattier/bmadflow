@@ -60,7 +60,10 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     # Provide session
     async with async_session_factory() as session:
         # Track created records for cleanup
+        from app.models.conversation import Conversation
         from app.models.document import Document
+        from app.models.llm_provider import LLMProvider
+        from app.models.message import Message
         from app.models.project import Project
         from app.models.project_doc import ProjectDoc
 
@@ -71,7 +74,10 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
         # Cleanup: Delete all test data created during the test
-        # Delete in order: Documents -> ProjectDocs -> Projects
+        # Delete in order respecting foreign keys:
+        # Messages -> Conversations -> Documents -> ProjectDocs -> Projects -> LLMProviders
+        await session.execute(delete(Message))
+        await session.execute(delete(Conversation))
         await session.execute(delete(Document))
 
         # Delete ProjectDocs created during test
@@ -85,6 +91,9 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         for p in result.scalars().all():
             if p.id not in initial_project_ids:
                 await session.delete(p)
+
+        # Delete LLMProviders created during test (they don't have FK to Project)
+        await session.execute(delete(LLMProvider))
 
         await session.commit()
 

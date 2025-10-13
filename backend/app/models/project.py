@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
+    from app.models.conversation import Conversation
     from app.models.project_doc import ProjectDoc
 
 
@@ -34,6 +35,9 @@ class Project(Base):
     # Relationships
     project_docs: Mapped[List["ProjectDoc"]] = relationship(
         "ProjectDoc", back_populates="project", cascade="all, delete-orphan"
+    )
+    conversations: Mapped[List["Conversation"]] = relationship(
+        "Conversation", back_populates="project", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
